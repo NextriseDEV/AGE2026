@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Ministros - CONADIBE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .conadibe-bg { background-color: #0d2d5a; }
+        .conadibe-text { color: #0d2d5a; }
+        .accent-text { color: #d4a017; }
+        
+        .form-section { display: none; }
+        .form-section.active { display: block; animation: fadeIn 0.5s; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: 0; } }
+        
+        .input-field {
+            width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; transition: 0.3s;
+        }
+        .input-field:focus { border-color: #d4a017; outline: none; box-shadow: 0 0 0 3px rgba(212, 160, 23, 0.1); }
+        
+        .file-upload-box {
+            border: 2px dashed #cbd5e1; padding: 20px; text-align: center; border-radius: 8px; cursor: pointer; transition: 0.3s;
+        }
+        .file-upload-box:hover { border-color: #0d2d5a; background-color: #f1f5f9; }
+        .file-upload-box.uploaded { border-color: #10b981; background-color: #ecfdf5; }
+    </style>
+</head>
+<body class="py-8 px-4">
+
+    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        
+        <div class="bg-gray-50 p-6 border-b border-gray-200 text-center">
+            <h1 class="text-2xl font-bold conadibe-text">Ficha de Ministros</h1>
+            <p class="text-sm text-gray-500">Filiação, Consagração e Reconhecimento</p>
+            
+            <div class="w-full bg-gray-200 h-2 rounded-full mt-4">
+                <div id="progressBar" class="bg-yellow-500 h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+            </div>
+        </div>
+
+        <form id="formMinistros" class="p-8">
+            <input type="hidden" name="categoria" value="MINISTRO">
+            
+            <div class="form-section active" id="step1">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">1. Objetivo do Cadastro</h2>
+                
+                <div class="grid grid-cols-1 gap-4 mb-6">
+                    <label class="block text-sm font-medium text-gray-700">Qual a natureza da sua solicitação?</label>
+                    <select name="tipoSolicitacao" id="tipoSolicitacao" class="input-field bg-white" required>
+                        <option value="" disabled selected>Selecione...</option>
+                        <option value="CONSAGRACAO">Consagração (Serei consagrado neste evento)</option>
+                        <option value="RECONHECIMENTO">Reconhecimento (Já sou ministro em outra convenção)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <label class="block text-sm font-medium text-gray-700">Cargo Eclesiástico</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="cargo" value="EVANGELISTA" class="peer sr-only" required>
+                            <div class="p-4 rounded-lg border border-gray-300 peer-checked:border-blue-900 peer-checked:bg-blue-50 text-center hover:bg-gray-50 transition">
+                                <span class="block font-bold text-sm">Evangelista</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="cargo" value="MISSIONARIO" class="peer sr-only">
+                            <div class="p-4 rounded-lg border border-gray-300 peer-checked:border-blue-900 peer-checked:bg-blue-50 text-center hover:bg-gray-50 transition">
+                                <span class="block font-bold text-sm">Missionário(a)</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="cargo" value="PASTOR" class="peer sr-only">
+                            <div class="p-4 rounded-lg border border-gray-300 peer-checked:border-blue-900 peer-checked:bg-blue-50 text-center hover:bg-gray-50 transition">
+                                <span class="block font-bold text-sm">Pastor(a)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" onclick="nextStep(2)" class="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800">Avançar &rarr;</button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step2">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">2. Dados Pessoais</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome Completo</label>
+                        <input type="text" name="nome" class="input-field" required>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Data de Nascimento</label>
+                        <input type="date" name="nascimento" class="input-field text-gray-600" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Sexo</label>
+                        <select name="sexo" class="input-field bg-white" required>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">CPF</label>
+                        <input type="text" name="cpf" class="input-field cpf-mask" placeholder="000.000.000-00" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">RG</label>
+                        <input type="text" name="rg" class="input-field" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Estado Civil</label>
+                        <select name="estadoCivil" class="input-field bg-white" required>
+                            <option value="Casado">Casado(a)</option>
+                            <option value="Solteiro">Solteiro(a)</option>
+                            <option value="Viuvo">Viúvo(a)</option>
+                            <option value="Divorciado">Divorciado(a)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Escolaridade</label>
+                        <select name="escolaridade" class="input-field bg-white" required>
+                            <option value="Fundamental">Fundamental</option>
+                            <option value="Medio">Médio</option>
+                            <option value="Superior Incompleto">Superior Incompleto</option>
+                            <option value="Superior Completo">Superior Completo</option>
+                            <option value="PosGraduacao">Pós Graduação/Mestrado</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome da Mãe</label>
+                        <input type="text" name="nomeMae" class="input-field" required>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome do Pai</label>
+                        <input type="text" name="nomePai" class="input-field">
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Naturalidade (Cidade/Estado)</label>
+                        <input type="text" name="naturalidade" class="input-field" placeholder="Ex: São Paulo - SP" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Celular (WhatsApp)</label>
+                        <input type="text" name="celular" class="input-field phone-mask" placeholder="(00) 00000-0000" required>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Email</label>
+                        <input type="email" name="email" class="input-field" required>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button type="button" onclick="nextStep(1)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="button" onclick="nextStep(3)" class="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800">Avançar &rarr;</button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step3">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">3. Endereço Residencial</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-1">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">CEP</label>
+                        <input type="text" name="cep" id="cep" class="input-field cep-mask" onblur="buscarCep()" placeholder="00000-000" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Endereço (Rua/Av)</label>
+                        <input type="text" name="endereco" id="logradouro" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Número</label>
+                        <input type="text" name="numero" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Complemento</label>
+                        <input type="text" name="complemento" class="input-field">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Bairro</label>
+                        <input type="text" name="bairro" id="bairro" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Cidade</label>
+                        <input type="text" name="cidade" id="localidade" class="input-field bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">UF</label>
+                        <input type="text" name="uf" id="uf" class="input-field bg-gray-100" readonly>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button type="button" onclick="nextStep(2)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="button" onclick="nextStep(4)" class="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800">Avançar &rarr;</button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step4">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">4. Dados Eclesiásticos</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome da Igreja / Ministério</label>
+                        <input type="text" name="igrejaSede" class="input-field" placeholder="Ex: ADSA BRASIL" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Campo / Cidade da Igreja</label>
+                        <input type="text" name="campoIgreja" class="input-field" placeholder="Ex: Embu-Guaçu" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome do Pastor Presidente</label>
+                        <input type="text" name="pastorPresidente" class="input-field" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Data de Batismo</label>
+                            <input type="date" name="dataBatismo" class="input-field text-gray-500">
+                        </div>
+                        <div id="divDataConsagracao" class="hidden">
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Data da Consagração Anterior</label>
+                            <input type="date" name="dataConsagracaoAnterior" class="input-field text-gray-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button type="button" onclick="nextStep(3)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="button" onclick="nextStep(5)" class="bg-blue-900 text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-800">Avançar &rarr;</button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step5">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">5. Documentação Obrigatória</h2>
+                <p class="text-sm text-red-600 mb-6 font-medium">Todos os documentos listados abaixo são exigidos para a homologação.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Foto Digitalizada (Para Credencial)</label>
+                        <input type="file" name="fotoPerfil" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Cópia do RG (Frente e Verso)</label>
+                        <input type="file" name="docRG" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Cópia do CPF</label>
+                        <input type="file" name="docCPF" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Comprovante de Endereço</label>
+                        <input type="file" name="docEndereco" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Certidão de Casamento (Se casado)</label>
+                        <input type="file" name="docCasamento" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-bold text-gray-600">Atestado de Antecedentes Criminais</label>
+                        <input type="file" name="docAntecedentes" accept=".pdf" class="input-field text-sm">
+                        <p class="text-xs text-gray-400 mt-1">Disponível no site da Polícia Federal ou Secretaria de Segurança.</p>
+                    </div>
+
+                    <div class="md:col-span-2 border-t pt-4 mt-2">
+                        <p class="font-bold text-conadibe-text mb-2">Documentos Ministeriais</p>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Diploma/Certificado de Teologia</label>
+                        <input type="file" name="docTeologia" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Comprovante Inscrição Conf. Bíblica</label>
+                        <input type="file" name="docInscricaoConferencia" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-2 cursor-pointer mt-4 p-4 bg-gray-50 rounded-lg border">
+                            <input type="checkbox" name="termoCiencia" required class="w-5 h-5 text-blue-900 rounded">
+                            <span class="text-sm text-gray-700">Declaro que as informações acima são verdadeiras e estou ciente do Termo de Comprometimento Ministerial da CONADIBE.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between items-center">
+                    <button type="button" onclick="nextStep(4)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 shadow-lg transform transition hover:scale-105">FINALIZAR INSCRIÇÃO</button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        // Máscaras (Dependência jQuery Mask)
+        $(document).ready(function(){
+            $('.cpf-mask').mask('000.000.000-00');
+            $('.phone-mask').mask('(00) 00000-0000');
+            $('.cep-mask').mask('00000-000');
+        });
+
+        // Controle de Steps
+        function nextStep(step) {
+            // Validação simples (pode aprimorar)
+            const currentStepDiv = document.querySelector('.form-section.active');
+            /* // Descomente para ativar validação rígida
+            const inputs = currentStepDiv.querySelectorAll('input[required], select[required]');
+            let valid = true;
+            inputs.forEach(el => {
+                if(!el.value) { el.classList.add('border-red-500'); valid = false; }
+                else { el.classList.remove('border-red-500'); }
+            });
+            if(!valid) return alert('Preencha os campos obrigatórios');
+            */
+
+            // Troca de Aba
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            // Barra de Progresso
+            const progress = (step / 5) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // Scroll Top
+            window.scrollTo(0, 0);
+        }
+
+        // Lógica de Reconhecimento vs Consagração
+        document.getElementById('tipoSolicitacao').addEventListener('change', function() {
+            const val = this.value;
+            const divData = document.getElementById('divDataConsagracao');
+            if(val === 'RECONHECIMENTO') {
+                divData.classList.remove('hidden');
+            } else {
+                divData.classList.add('hidden');
+            }
+        });
+
+        // Busca de CEP (ViaCEP)
+        function buscarCep() {
+            const cep = document.getElementById('cep').value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                document.getElementById('logradouro').value = "...";
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(!data.erro) {
+                            document.getElementById('logradouro').value = data.logradouro;
+                            document.getElementById('bairro').value = data.bairro;
+                            document.getElementById('localidade').value = data.localidade;
+                            document.getElementById('uf').value = data.uf;
+                        } else {
+                            alert('CEP não encontrado');
+                        }
+                    });
+            }
+        }
+        
+        // Submit (Prevent Default para Demo)
+        document.getElementById('formMinistros').addEventListener('submit', function(e){
+            e.preventDefault();
+            alert("Dados prontos para envio! (Integração Backend pendente)");
+            // Aqui entra a lógica de fetch() para o Google Apps Script
+        });
+    </script>
+</body>
+</html>
