@@ -6,62 +6,204 @@
     <title>Portal de Inscrições - CONADIBE 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        
+        /* Cores CONADIBE */
         .conadibe-blue { color: #0d2d5a; }
         .bg-conadibe-blue { background-color: #0d2d5a; }
         .conadibe-gold { color: #d4a017; }
+        .bg-conadibe-gold { background-color: #d4a017; }
         .border-gold { border-color: #d4a017; }
         
         .card-hover { transition: all 0.3s ease; }
         .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+
+        /* Animações Splash */
+        .fade-out { animation: fadeOut 0.5s forwards; }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+        /* --- ANIMAÇÃO DO BOTÃO FLUTUANTE (NOVO) --- */
+        @keyframes reveal-text {
+            0%, 20% { max-width: 0; opacity: 0; margin-left: 0; }
+            30%, 85% { max-width: 160px; opacity: 1; margin-left: 0.5rem; }
+            100% { max-width: 0; opacity: 0; margin-left: 0; }
+        }
+        @keyframes pulse-gold {
+            0% { box-shadow: 0 0 0 0 rgba(212, 160, 23, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(212, 160, 23, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(212, 160, 23, 0); }
+        }
+        .btn-floating { animation: pulse-gold 2s infinite; }
+        .btn-text-anim {
+            overflow: hidden; white-space: nowrap; display: inline-block;
+            animation: reveal-text 5s infinite ease-in-out;
+        }
+
+        /* Chat Styles */
+        .chat-window { display: none; position: fixed; bottom: 100px; right: 20px; width: 320px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 49; overflow: hidden; }
+        .chat-header { background: #0d2d5a; color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .chat-body { padding: 15px; max-height: 350px; overflow-y: auto; }
+        .chat-option { background: #f3f4f6; padding: 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; border-left: 3px solid transparent; }
+        .chat-option:hover { background: #e2e8f0; border-left: 3px solid #d4a017; }
+        .chat-answer { background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; color: #0d2d5a; display: none; border-left: 4px solid #d4a017; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-6">
+<body class="min-h-screen flex flex-col items-center relative">
 
-    <div class="text-center mb-10">
-        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" alt="Logo CONADIBE" class="h-20 mx-auto mb-4">
-        <h1 class="text-3xl font-bold conadibe-blue">CONADIBE 2026</h1>
-        <p class="text-gray-500">Selecione sua categoria para iniciar o credenciamento</p>
+    <div id="splash-overlay" class="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm">
+        <div class="max-w-4xl w-full bg-white rounded-lg shadow-2xl overflow-hidden relative animate-[bounce_1s_ease-out]">
+            
+            <button onclick="fecharSplash()" class="absolute top-2 right-2 md:top-4 md:right-4 bg-gray-200 hover:bg-red-500 hover:text-white text-gray-600 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center transition font-bold shadow-lg z-10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <img src="https://wasabi.e-inscricao.com/uploads/hotsite/v2/cover/1765469952_8a635241-0681-4afe-90c2-a1c477e71ff3.png" 
+                 alt="Conferência Bíblica CONADIBE 2026" 
+                 class="w-full h-auto object-cover">
+            
+            <div class="p-6 bg-gray-50 flex flex-col md:flex-row gap-4 justify-center items-center border-t border-gray-200">
+                <p class="text-gray-600 text-sm font-semibold md:hidden mb-2">Selecione uma opção:</p>
+                
+                <a href="https://www.e-inscricao.com/conadibe/conferencia-biblica-2026" target="_blank" 
+                   class="w-full md:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-2">
+                   <i class="fa-regular fa-credit-card"></i> PAGAR INSCRIÇÃO
+                </a>
+
+                <button onclick="fecharSplash()" 
+                        class="w-full md:w-auto px-8 py-3 bg-conadibe-blue hover:bg-blue-900 text-white font-bold rounded-lg shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-2">
+                    ACESSAR PORTAL <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        <p class="text-gray-400 text-xs mt-4">Toque em "Acessar Portal" para preencher sua ficha cadastral.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
+
+    <div class="flex flex-col items-center justify-center flex-grow p-6 w-full">
         
-        <a href="geral.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-400 flex flex-col items-center text-center">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-            </div>
-            <h2 class="text-xl font-bold text-gray-800">Público Geral</h2>
-            <p class="text-sm text-gray-500 mt-2">Membros, visitantes e caravanas (Setores B e C).</p>
-            <span class="mt-auto pt-4 text-blue-600 text-sm font-semibold">Acessar &rarr;</span>
-        </a>
+        <div class="text-center mb-10">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" alt="Logo CONADIBE" class="h-20 mx-auto mb-4">
+            <h1 class="text-3xl font-bold conadibe-blue">CONADIBE 2026</h1>
+            <p class="text-gray-500">Selecione sua categoria para iniciar o credenciamento</p>
+        </div>
 
-        <a href="obreiros.html"    class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-600
-          flex flex-col items-center text-center relative overflow-hidden">
-          <div class="absolute top-0 right-0 bg-conadibe-blue text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
-    SETOR A
-</div>
-
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
+            
+            <a href="geral.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-400 flex flex-col items-center text-center">
                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-            </div>
-            <h2 class="text-xl font-bold text-gray-800">Obreiros</h2>
-            <p class="text-sm text-gray-500 mt-2">Diáconos(as) e Presbíteros para Consagração ou Reconhecimento.</p>
-            <span class="mt-auto pt-4 text-blue-600 text-sm font-semibold">Acessar &rarr;</span>
-        </a>
+                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Público Geral</h2>
+                <p class="text-sm text-gray-500 mt-2">Membros, visitantes e caravanas (Setores B e C).</p>
+                <span class="mt-auto pt-4 text-blue-600 text-sm font-semibold">Acessar →</span>
+            </a>
 
-        <a href="ministros.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gold flex flex-col items-center text-center relative overflow-hidden">
-            <div class="absolute top-0 right-0 bg-conadibe-blue text-white text-xs font-bold px-3 py-1 rounded-bl-lg">SETOR A</div>
-            <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 conadibe-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-            </div>
-            <h2 class="text-xl font-bold conadibe-blue">Ministros</h2>
-            <p class="text-sm text-gray-500 mt-2">Pastores, Evangelistas e Missionários(as).</p>
-            <span class="mt-auto pt-4 conadibe-gold text-sm font-semibold">Acessar &rarr;</span>
-        </a>
+            <a href="obreiros.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-600 flex flex-col items-center text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-conadibe-blue text-white text-xs font-bold px-3 py-1 rounded-bl-lg">SETOR A</div>
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-gray-800">Obreiros</h2>
+                <p class="text-sm text-gray-500 mt-2">Diáconos(as) e Presbíteros para Consagração ou Reconhecimento.</p>
+                <span class="mt-auto pt-4 text-blue-600 text-sm font-semibold">Acessar →</span>
+            </a>
 
+            <a href="ministros.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gold flex flex-col items-center text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 bg-conadibe-blue text-white text-xs font-bold px-3 py-1 rounded-bl-lg">SETOR A</div>
+                <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 conadibe-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold conadibe-blue">Ministros</h2>
+                <p class="text-sm text-gray-500 mt-2">Pastores, Evangelistas e Missionários(as).</p>
+                <span class="mt-auto pt-4 conadibe-gold text-sm font-semibold">Acessar →</span>
+            </a>
+
+        </div>
+
+        <footer class="mt-12 text-gray-400 text-sm">© 2026 CONADIBE - Secretaria Geral</footer>
     </div>
-    
-    <footer class="mt-12 text-gray-400 text-sm">© 2026 CONADIBE - Secretaria Geral</footer>
+
+    <button onclick="toggleChat()" class="btn-floating fixed bottom-8 right-8 z-50 bg-conadibe-blue hover:bg-blue-900 text-white font-bold p-4 rounded-full shadow-2xl transition transform flex items-center justify-center group border-2 border-white">
+        <i class="fa-solid fa-question text-2xl"></i>
+        <span class="btn-text-anim text-sm text-conadibe-gold font-bold">Dúvidas? Clique aqui.</span>
+    </button>
+
+    <div id="chatWindow" class="chat-window">
+        <div class="chat-header">
+            <span><i class="fa-regular fa-comments mr-2"></i>Dúvidas Frequentes</span>
+            <button onclick="toggleChat()" class="text-white hover:text-gray-300"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="chat-body bg-white">
+            <p class="text-sm text-gray-500 mb-4">Olá! Como podemos te ajudar com sua inscrição?</p>
+            
+            <div id="options">
+                <div class="chat-option" onclick="showAnswer('pagamento')">Onde faço o pagamento?</div>
+                <div class="chat-option" onclick="showAnswer('data')">Qual a data do evento?</div>
+                <div class="chat-option" onclick="showAnswer('credencial')">Como recebo minha credencial?</div>
+                <div class="chat-option" onclick="showAnswer('setor')">Qual meu setor (Assento)?</div>
+                
+                <button onclick="falarOrganizador()" class="w-full mt-4 bg-green-600 text-white py-2 rounded text-sm font-bold hover:bg-green-700 flex items-center justify-center gap-2 shadow-md transition">
+                    <i class="fa-brands fa-whatsapp"></i> Falar com Organizador
+                </button>
+            </div>
+
+            <div id="answer-pagamento" class="chat-answer">
+                O pagamento deve ser feito exclusivamente pela plataforma E-inscrição. 
+                <a href="https://www.e-inscricao.com/conadibe/conferencia-biblica-2026" target="_blank" class="underline font-bold text-blue-700">Clique aqui para acessar</a>.
+                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+            </div>
+
+            <div id="answer-data" class="chat-answer">
+                A Conferência Bíblica CONADIBE ocorrerá de <strong>05 a 09 de Julho de 2026</strong>.
+                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+            </div>
+
+            <div id="answer-credencial" class="chat-answer">
+                Após preencher sua ficha aqui no portal, seus dados serão analisados. Se aprovado, você receberá a credencial digital com QR Code no seu WhatsApp/E-mail.
+                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+            </div>
+
+            <div id="answer-setor" class="chat-answer">
+                <strong>Setor A:</strong> Exclusivo para Ministros e Obreiros (Nave).<br>
+                <strong>Setor B/C:</strong> Público Geral e Caravanas (Galerias).
+                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fecharSplash() {
+            const splash = document.getElementById('splash-overlay');
+            splash.classList.add('fade-out');
+            setTimeout(() => {
+                splash.style.display = 'none';
+            }, 500);
+        }
+
+        function toggleChat() {
+            const w = document.getElementById('chatWindow');
+            w.style.display = w.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function showAnswer(id) {
+            document.getElementById('options').style.display = 'none';
+            document.querySelectorAll('.chat-answer').forEach(el => el.style.display = 'none');
+            document.getElementById('answer-' + id).style.display = 'block';
+        }
+
+        function resetChat() {
+            document.getElementById('options').style.display = 'block';
+            document.querySelectorAll('.chat-answer').forEach(el => el.style.display = 'none');
+        }
+
+        function falarOrganizador() {
+            const numero = "5511946028592";
+            const texto = "Olá, estou no site da inscrição e tenho uma dúvida não listada no FAQ.";
+            window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank');
+        }
+    </script>
 </body>
 </html>
