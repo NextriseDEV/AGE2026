@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Obreiros - CONADIBE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .conadibe-bg { background-color: #0d2d5a; }
+        .conadibe-text { color: #0d2d5a; }
+        
+        /* Animações */
+        .form-section { display: none; }
+        .form-section.active { display: block; animation: slideIn 0.4s ease-out; }
+        .fade-in-section { animation: fadeIn 0.5s ease-in; }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: 0; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Inputs Personalizados */
+        .input-field {
+            width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; transition: 0.3s;
+        }
+        .input-field:focus { border-color: #4b5563; outline: none; box-shadow: 0 0 0 3px rgba(75, 85, 99, 0.1); }
+        
+        /* Tema Específico Obreiros (Cinza/Chumbo) */
+        .header-obreiro { background: linear-gradient(to right, #374151, #1f2937); color: white; }
+        .progress-bar-fill { background-color: #4b5563; }
+    </style>
+</head>
+<body class="py-8 px-4">
+
+    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
+        
+        <div class="header-obreiro p-6 border-b border-gray-700 text-center relative">
+            <a href="index.html" class="absolute top-6 left-6 text-gray-300 hover:text-white transition"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+            <h1 class="text-2xl font-bold">Ficha de Obreiros</h1>
+            <p class="text-sm text-gray-300">Diáconos e Presbíteros</p>
+            
+            <div class="w-full bg-gray-600 h-2 rounded-full mt-4">
+                <div id="progressBar" class="progress-bar-fill h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+            </div>
+        </div>
+
+        <form id="formObreiros" class="p-8">
+            <input type="hidden" name="categoria" value="OBREIRO">
+            
+            <div class="form-section active" id="step1">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">1. Objetivo e Cargo</h2>
+                
+                <div class="grid grid-cols-1 gap-4 mb-6">
+                    <label class="block text-sm font-medium text-gray-700">Natureza da Solicitação</label>
+                    <select name="tipoSolicitacao" id="tipoSolicitacao" class="input-field bg-white" required>
+                        <option value="" disabled selected>Selecione...</option>
+                        <option value="CONSAGRACAO">Consagração (Serei consagrado neste evento)</option>
+                        <option value="RECONHECIMENTO">Reconhecimento (Já sou obreiro em outra convenção)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <label class="block text-sm font-medium text-gray-700">Cargo Eclesiástico</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="cargo" value="DIACONO" class="peer sr-only" required>
+                            <div class="p-4 rounded-lg border border-gray-300 peer-checked:border-gray-800 peer-checked:bg-gray-100 text-center hover:bg-gray-50 transition">
+                                <i class="fa-solid fa-user-servant text-2xl mb-2 text-gray-600"></i>
+                                <span class="block font-bold text-sm">Diácono / Diaconisa</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="cargo" value="PRESBITERO" class="peer sr-only">
+                            <div class="p-4 rounded-lg border border-gray-300 peer-checked:border-gray-800 peer-checked:bg-gray-100 text-center hover:bg-gray-50 transition">
+                                <i class="fa-solid fa-book-bible text-2xl mb-2 text-gray-600"></i>
+                                <span class="block font-bold text-sm">Presbítero</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-end">
+                    <button type="button" onclick="nextStep(2)" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-900 transition flex items-center gap-2">
+                        Avançar <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step2">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">2. Dados Pessoais</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome Completo</label>
+                        <input type="text" name="nome" class="input-field" required>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Data de Nascimento</label>
+                        <input type="date" name="nascimento" class="input-field text-gray-600" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Sexo</label>
+                        <select name="sexo" class="input-field bg-white" required>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">CPF</label>
+                        <input type="text" name="cpf" class="input-field cpf-mask" placeholder="000.000.000-00" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">RG</label>
+                        <input type="text" name="rg" class="input-field" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Estado Civil</label>
+                        <select name="estadoCivil" id="estadoCivil" class="input-field bg-white" required onchange="verificarEstadoCivil()">
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="Solteiro">Solteiro(a)</option>
+                            <option value="Casado">Casado(a)</option>
+                            <option value="Viuvo">Viúvo(a)</option>
+                            <option value="Divorciado">Divorciado(a)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Escolaridade</label>
+                        <select name="escolaridade" class="input-field bg-white" required>
+                            <option value="Fundamental Incompleto">Fundamental Incompleto</option>
+                            <option value="Fundamental Completo">Fundamental Completo</option>
+                            <option value="Medio Incompleto">Médio Incompleto</option>
+                            <option value="Medio Completo">Médio Completo</option>
+                            <option value="Superior Incompleto">Superior Incompleto</option>
+                            <option value="Superior Completo">Superior Completo</option>
+                        </select>
+                    </div>
+
+                    <div id="areaConjuge" class="hidden md:col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-200 mt-2 fade-in-section">
+                        <h3 class="text-sm font-bold text-gray-700 mb-3 border-b border-gray-300 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-ring text-gray-500"></i> Dados do Cônjuge
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div class="md:col-span-1 lg:col-span-1">
+                                <label class="text-xs font-semibold text-gray-500 uppercase">Nome do Cônjuge</label>
+                                <input type="text" name="nomeConjuge" class="input-field bg-white">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">Nascimento Cônjuge</label>
+                                <input type="date" name="nascimentoConjuge" class="input-field bg-white text-gray-600">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-gray-500 uppercase">Data de Casamento</label>
+                                <input type="date" name="dataCasamento" class="input-field bg-white text-gray-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome da Mãe</label>
+                        <input type="text" name="nomeMae" class="input-field" required>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome do Pai</label>
+                        <input type="text" name="nomePai" class="input-field">
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Naturalidade</label>
+                        <input type="text" name="naturalidade" class="input-field" placeholder="Ex: São Paulo - SP" required>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Celular (WhatsApp)</label>
+                        <input type="text" name="celular" class="input-field phone-mask" placeholder="(00) 00000-0000" required>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Email</label>
+                        <input type="email" name="email" class="input-field" required>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button type="button" onclick="nextStep(1)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="button" onclick="nextStep(3)" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-900 transition flex items-center gap-2">Avançar <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step3">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">3. Endereço Residencial</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-1">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">CEP</label>
+                        <input type="text" name="cep" id="cep" class="input-field cep-mask" onblur="buscarCep()" placeholder="00000-000" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Endereço (Rua/Av)</label>
+                        <input type="text" name="endereco" id="logradouro" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Número</label>
+                        <input type="text" name="numero" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Complemento</label>
+                        <input type="text" name="complemento" class="input-field">
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Bairro</label>
+                        <input type="text" name="bairro" id="bairro" class="input-field" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Cidade</label>
+                        <input type="text" name="cidade" id="localidade" class="input-field bg-gray-100" readonly>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">UF</label>
+                        <input type="text" name="uf" id="uf" class="input-field bg-gray-100" readonly>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button type="button" onclick="nextStep(2)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="button" onclick="nextStep(4)" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-900 transition flex items-center gap-2">Avançar <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step4">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">4. Dados Eclesiásticos</h2>
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-6">
+                    <p class="text-xs text-yellow-800">Preencha com os dados da igreja onde você congrega e serve atualmente.</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome da Igreja / Ministério</label>
+                        <input type="text" name="igrejaSede" class="input-field" placeholder="Ex: ADSA BRASIL" required>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Campo / Setor</label>
+                            <input type="text" name="campoIgreja" class="input-field" placeholder="Ex: Embu-Guaçu" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Congregação Local</label>
+                            <input type="text" name="congregacao" class="input-field" placeholder="Ex: Jd. Cipó" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase">Nome do Pastor Presidente</label>
+                        <input type="text" name="pastorPresidente" class="input-field" required>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Data de Batismo</label>
+                            <input type="date" name="dataBatismo" class="input-field text-gray-500" required>
+                        </div>
+                        <div id="divDataConsagracao" class="hidden">
+                            <label class="text-xs font-semibold text-gray-500 uppercase">Data da Consagração Anterior</label>
+                            <input type="date" name="dataConsagracaoAnterior" class="input-field text-gray-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                    <button type="button" onclick="nextStep(3)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="button" onclick="nextStep(5)" class="bg-gray-800 text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-900 transition flex items-center gap-2">Avançar <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            </div>
+
+            <div class="form-section" id="step5">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">5. Foto e Documentação</h2>
+                <p class="text-sm text-gray-600 mb-6">Siga rigorosamente o padrão para sua credencial.</p>
+
+                <div class="bg-gray-100 border-l-4 border-gray-600 p-4 mb-6 rounded-r-lg shadow-sm">
+                    <div class="flex flex-col md:flex-row gap-6 items-center">
+                        <div class="flex-shrink-0">
+                            <img src="https://nextrisedev.github.io/AGE2026/ASSETS/FOTOCRED1.png" alt="Modelo de Foto" class="w-24 h-32 object-cover rounded-lg border-2 border-gray-300 shadow-md">
+                            <p class="text-[10px] text-center text-gray-500 mt-1 uppercase font-bold">Modelo Padrão</p>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-gray-800 font-bold text-lg mb-2"><i class="fa-solid fa-camera"></i> Padrão Oficial</h3>
+                            <ul class="text-xs text-gray-600 space-y-1 list-disc pl-4">
+                                <li>Homens: Terno e Gravata. Mulheres: Roupa social discreta.</li>
+                                <li>Fundo: Parede branca ou cinza claro, sem objetos.</li>
+                                <li>Iluminação: Ambiente claro, rosto bem iluminado.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8 p-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center" id="photo-area">
+                    <label class="block text-lg font-bold text-gray-700 mb-4">Sua Foto</label>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="photo-buttons">
+                        <button type="button" onclick="iniciarCamera()" class="py-3 px-4 bg-gray-800 text-white rounded-lg font-semibold hover:bg-gray-900 flex items-center justify-center gap-2 shadow-md transition">
+                            <i class="fa-solid fa-camera"></i> Tirar Foto Agora
+                        </button>
+                        <button type="button" onclick="document.getElementById('uploadInput').click()" class="py-3 px-4 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 flex items-center justify-center gap-2 shadow-sm transition">
+                            <i class="fa-solid fa-image"></i> Escolher da Galeria
+                        </button>
+                    </div>
+
