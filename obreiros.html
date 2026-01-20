@@ -316,3 +316,233 @@
                         </button>
                     </div>
 
+                    <input type="file" id="uploadInput" accept="image/*" class="hidden" onchange="processarUpload(this)">
+                    <input type="hidden" name="fotoBase64" id="fotoBase64">
+
+                    <div id="camera-container" class="hidden mt-4">
+                        <div class="relative w-full max-w-sm mx-auto rounded-lg overflow-hidden shadow-lg bg-black">
+                            <video id="video" class="w-full h-auto" autoplay playsinline></video>
+                            <canvas id="canvas" class="hidden"></canvas>
+                        </div>
+                        <div class="mt-4 flex justify-center gap-4">
+                            <button type="button" onclick="capturarFoto()" class="bg-red-600 text-white rounded-full p-4 hover:bg-red-700 shadow-lg">
+                                <i class="fa-solid fa-camera text-xl"></i>
+                            </button>
+                            <button type="button" onclick="fecharCamera()" class="text-gray-500 underline text-sm mt-2">Cancelar</button>
+                        </div>
+                    </div>
+
+                    <div id="preview-container" class="hidden mt-4 text-center animate-fadeIn">
+                        <p class="text-green-600 font-bold mb-2"><i class="fa-solid fa-check-circle"></i> Foto Pronta!</p>
+                        <img id="preview-img" src="" class="w-24 h-32 object-cover mx-auto rounded-lg shadow-lg border-2 border-green-500">
+                        <button type="button" onclick="resetarFoto()" class="mt-3 text-xs text-red-500 hover:text-red-700 underline font-medium">Trocar foto</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="md:col-span-2 border-t pt-4">
+                        <p class="font-bold text-gray-700 mb-2">Documentos Obrigatórios (PDF ou Foto)</p>
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Cópia do RG</label>
+                        <input type="file" name="docRG" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Cópia do CPF</label>
+                        <input type="file" name="docCPF" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Comprovante de Endereço</label>
+                        <input type="file" name="docEndereco" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Certidão de Casamento (Se casado)</label>
+                        <input type="file" name="docCasamento" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-bold text-gray-600">Atestado de Antecedentes Criminais</label>
+                        <input type="file" name="docAntecedentes" accept=".pdf" class="input-field text-sm">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-xs font-bold text-gray-600">Curso Teologia (Básico/Médio) ou Termo</label>
+                        <input type="file" name="docTeologia" accept=".pdf,image/*" class="input-field text-sm">
+                        <p class="text-[10px] text-gray-400">Certificado de conclusão ou Termo de Comprometimento assinado.</p>
+                    </div>
+                    
+                    <div>
+                        <label class="text-xs font-bold text-gray-600">Comprovante Inscrição Conf. Bíblica</label>
+                        <input type="file" name="docInscricaoConferencia" accept=".pdf,image/*" class="input-field text-sm">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-2 cursor-pointer mt-4 p-4 bg-gray-50 rounded-lg border">
+                            <input type="checkbox" name="termoCiencia" required class="w-5 h-5 text-gray-800 rounded">
+                            <span class="text-xs text-gray-700">Declaro que as informações acima são verdadeiras, estou quite com a tesouraria local e apto conforme 1Tm 3 e At 6:3.</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex justify-between items-center">
+                    <button type="button" onclick="nextStep(4)" class="text-gray-500 font-semibold hover:text-gray-700">Voltar</button>
+                    <button type="submit" class="bg-green-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-green-700 shadow-lg transform transition hover:scale-105 flex items-center gap-2">
+                        FINALIZAR <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        // --- 1. CONFIGURAÇÕES INICIAIS ---
+        $(document).ready(function(){
+            $('.cpf-mask').mask('000.000.000-00');
+            $('.phone-mask').mask('(00) 00000-0000');
+            $('.cep-mask').mask('00000-000');
+        });
+
+        // --- 2. NAVEGAÇÃO ENTRE PASSOS ---
+        function nextStep(step) {
+            // Remove classe ativa de todos e adiciona no atual
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('step' + step).classList.add('active');
+            
+            // Atualiza barra de progresso
+            const progress = (step / 5) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            // Rola para o topo
+            window.scrollTo(0, 0);
+        }
+
+        // --- 3. LÓGICAS CONDICIONAIS ---
+        
+        // Tipo de Solicitação (Consagração vs Reconhecimento)
+        document.getElementById('tipoSolicitacao').addEventListener('change', function() {
+            const val = this.value;
+            const divData = document.getElementById('divDataConsagracao');
+            if(val === 'RECONHECIMENTO') {
+                divData.classList.remove('hidden');
+            } else {
+                divData.classList.add('hidden');
+            }
+        });
+
+        // Estado Civil e Cônjuge
+        function verificarEstadoCivil() {
+            const estado = document.getElementById('estadoCivil').value;
+            const areaConjuge = document.getElementById('areaConjuge');
+            const inputs = areaConjuge.querySelectorAll('input');
+
+            if(estado === 'Casado') {
+                areaConjuge.classList.remove('hidden');
+                inputs.forEach(i => i.required = true);
+            } else {
+                areaConjuge.classList.add('hidden');
+                inputs.forEach(i => {
+                    i.required = false;
+                    i.value = "";
+                });
+            }
+        }
+
+        // --- 4. INTEGRAÇÃO CEP ---
+        function buscarCep() {
+            const cep = document.getElementById('cep').value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                document.getElementById('logradouro').value = "...";
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(!data.erro) {
+                            document.getElementById('logradouro').value = data.logradouro;
+                            document.getElementById('bairro').value = data.bairro;
+                            document.getElementById('localidade').value = data.localidade;
+                            document.getElementById('uf').value = data.uf;
+                        } else {
+                            alert('CEP não encontrado');
+                        }
+                    });
+            }
+        }
+
+        // --- 5. CÂMERA E FOTO (Lógica Híbrida) ---
+        let stream = null;
+
+        async function iniciarCamera() {
+            const video = document.getElementById('video');
+            const cameraContainer = document.getElementById('camera-container');
+            const btns = document.getElementById('photo-buttons');
+
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+                video.srcObject = stream;
+                cameraContainer.classList.remove('hidden');
+                btns.classList.add('hidden');
+            } catch (err) {
+                alert("Erro ao acessar câmera. Verifique as permissões ou use a galeria.");
+            }
+        }
+
+        function fecharCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('camera-container').classList.add('hidden');
+            document.getElementById('photo-buttons').classList.remove('hidden');
+        }
+
+        function capturarFoto() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const dataURL = canvas.toDataURL('image/png');
+            aplicarFoto(dataURL);
+            fecharCamera();
+        }
+
+        function processarUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) { aplicarFoto(e.target.result); }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function aplicarFoto(base64) {
+            document.getElementById('fotoBase64').value = base64;
+            document.getElementById('preview-img').src = base64;
+            document.getElementById('preview-container').classList.remove('hidden');
+            document.getElementById('photo-buttons').classList.add('hidden');
+            document.getElementById('camera-container').classList.add('hidden');
+        }
+
+        function resetarFoto() {
+            document.getElementById('fotoBase64').value = "";
+            document.getElementById('preview-container').classList.add('hidden');
+            document.getElementById('photo-buttons').classList.remove('hidden');
+            document.getElementById('uploadInput').value = "";
+        }
+        
+        // --- 6. ENVIO DO FORMULÁRIO ---
+        document.getElementById('formObreiros').addEventListener('submit', function(e){
+            e.preventDefault();
+            
+            if(!document.getElementById('fotoBase64').value) {
+                alert("Atenção: A foto para a credencial é obrigatória!");
+                return;
+            }
+
+            // Simulação de Envio
+            alert("Cadastro de Obreiro enviado com sucesso! \nAguarde a aprovação do seu Pastor.");
+            // Aqui você conectará com o Google Apps Script futuramente
+        });
+    </script>
+</body>
+</html>
