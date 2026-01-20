@@ -25,15 +25,10 @@
             flex-direction: column; align-items: center; justify-content: center;
         }
         .scanner-frame {
-            width: 85%; max-width: 400px; aspect-ratio: 1.58/1; /* Proporção RG/CNH */
-            border: 2px solid rgba(255,255,255,0.5);
-            border-radius: 12px;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* Escurece em volta */
-            position: relative;
-            overflow: hidden;
-        }
-        .scanner-guide-line {
-            position: absolute; width: 100%; height: 2px; bg-red-500; top: 50%; opacity: 0.5;
+            width: 85%; max-width: 400px; aspect-ratio: 1.58/1; /* Proporção RG */
+            border: 2px solid rgba(255,255,255,0.5); border-radius: 12px;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            position: relative; overflow: hidden;
         }
         
         /* Status Card */
@@ -41,18 +36,23 @@
         .doc-card.completed { border-color: #10b981; background-color: #f0fdf4; }
         .doc-card.pending { border-left: 4px solid #d4a017; }
 
+        /* Animações */
         .hidden-step { display: none; }
         .active-step { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: 0; } }
+
+        /* Inputs */
+        .input-field { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; transition: 0.3s; }
+        .input-field:focus { border-color: #0d2d5a; outline: none; box-shadow: 0 0 0 3px rgba(13, 45, 90, 0.1); }
     </style>
 </head>
 <body class="pb-10">
 
     <div class="navy-bg text-white p-6 pb-12 rounded-b-3xl shadow-lg relative z-10">
-        <div class="max-w-3xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold flex items-center gap-3">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold flex items-center gap-3">
                 <i class="fa-solid fa-certificate gold-accent"></i> 
-                Ministros <span class="text-xs font-normal opacity-70 bg-white/10 px-2 py-1 rounded">Homologação</span>
+                Ministros <span class="text-xs font-normal opacity-70 bg-white/10 px-2 py-1 rounded hidden md:inline-block">Homologação Digital</span>
             </h1>
             <div class="text-right">
                 <p class="text-xs opacity-70">Etapa</p>
@@ -61,108 +61,265 @@
         </div>
     </div>
 
-    <div class="max-w-3xl mx-auto -mt-8 px-4 relative z-20">
+    <div class="max-w-4xl mx-auto -mt-8 px-4 relative z-20">
         <form id="ministerForm" class="bg-white rounded-2xl shadow-xl overflow-hidden min-h-[500px]">
             
             <div id="step1" class="p-8 active-step">
-                <h2 class="text-xl font-bold text-gray-800 mb-1">Dados Ministeriais</h2>
-                <p class="text-sm text-gray-500 mb-6">Informações para emissão da credencial.</p>
+                <h2 class="text-xl font-bold text-gray-800 mb-1">Dados Pessoais e Eclesiásticos</h2>
+                <p class="text-sm text-gray-500 mb-6">Preencha todos os campos obrigatórios.</p>
 
-                <div class="space-y-4">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                    <label class="block text-sm font-bold text-blue-900 mb-2">Natureza da Solicitação</label>
                     <div class="grid grid-cols-2 gap-4">
                         <label class="cursor-pointer">
-                            <input type="radio" name="natureza" value="CONSAGRACAO" class="peer sr-only" checked>
-                            <div class="p-3 border rounded-lg text-center peer-checked:bg-blue-50 peer-checked:border-blue-600 peer-checked:text-blue-800 transition">
+                            <input type="radio" name="tipoSolicitacao" value="CONSAGRACAO" class="peer sr-only" checked onchange="toggleReconhecimento()">
+                            <div class="p-3 bg-white border rounded-lg text-center peer-checked:border-blue-600 peer-checked:text-blue-800 peer-checked:shadow-sm transition">
                                 <span class="font-bold text-sm">Consagração</span>
                             </div>
                         </label>
                         <label class="cursor-pointer">
-                            <input type="radio" name="natureza" value="RECONHECIMENTO" class="peer sr-only">
-                            <div class="p-3 border rounded-lg text-center peer-checked:bg-blue-50 peer-checked:border-blue-600 peer-checked:text-blue-800 transition">
+                            <input type="radio" name="tipoSolicitacao" value="RECONHECIMENTO" class="peer sr-only" onchange="toggleReconhecimento()">
+                            <div class="p-3 bg-white border rounded-lg text-center peer-checked:border-blue-600 peer-checked:text-blue-800 peer-checked:shadow-sm transition">
                                 <span class="font-bold text-sm">Reconhecimento</span>
                             </div>
                         </label>
                     </div>
-
-                    <select name="cargo" class="w-full p-3 border rounded-lg bg-gray-50 font-medium" required>
-                        <option value="" disabled selected>Selecione o Cargo...</option>
-                        <option value="EVANGELISTA">Evangelista</option>
-                        <option value="MISSIONARIO">Missionário(a)</option>
-                        <option value="PASTOR">Pastor(a)</option>
-                    </select>
-
-                    <input type="text" name="nome" class="w-full p-3 border rounded-lg" placeholder="Nome Completo (Sem abreviações)" required>
-                    <div class="grid grid-cols-2 gap-4">
-                        <input type="text" name="cpf" class="cpf-mask w-full p-3 border rounded-lg" placeholder="CPF" required>
-                        <input type="date" name="nascimento" class="w-full p-3 border rounded-lg" required>
-                    </div>
-                    <input type="text" name="igreja" class="w-full p-3 border rounded-lg" placeholder="Igreja Sede / Ministério" required>
                 </div>
 
-                <button type="button" onclick="goToStep(2)" class="w-full mt-8 bg-blue-900 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-800 transition">
-                    Avançar para Documentação <i class="fa-solid fa-arrow-right ml-2"></i>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-3">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Nome Completo</label>
+                            <input type="text" name="nome" class="input-field" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Cargo Pretendido</label>
+                            <select name="cargo" class="input-field bg-white" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="EVANGELISTA">Evangelista</option>
+                                <option value="MISSIONARIO">Missionário(a)</option>
+                                <option value="PASTOR">Pastor(a)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Data Nascimento</label>
+                            <input type="date" name="nascimento" class="input-field text-gray-600" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Sexo</label>
+                            <select name="sexo" class="input-field bg-white" required>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">CPF</label>
+                            <input type="text" name="cpf" class="input-field cpf-mask" placeholder="000.000.000-00" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">RG</label>
+                            <input type="text" name="rg" class="input-field" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Celular (Zap)</label>
+                            <input type="text" name="celular" class="input-field phone-mask" placeholder="(00) 00000-0000" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Nome da Mãe</label>
+                            <input type="text" name="nomeMae" class="input-field" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Nome do Pai</label>
+                            <input type="text" name="nomePai" class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Estado Civil</label>
+                            <select name="estadoCivil" id="estadoCivil" class="input-field bg-white" onchange="toggleConjuge()" required>
+                                <option value="Solteiro">Solteiro(a)</option>
+                                <option value="Casado">Casado(a)</option>
+                                <option value="Divorciado">Divorciado(a)</option>
+                                <option value="Viuvo">Viúvo(a)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Escolaridade</label>
+                            <select name="escolaridade" class="input-field bg-white">
+                                <option value="Medio">Ensino Médio</option>
+                                <option value="Superior">Superior</option>
+                                <option value="Pos">Pós-Graduação</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="areaConjuge" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 class="text-sm font-bold text-blue-900 mb-2">Dados do Cônjuge</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="md:col-span-2">
+                                <input type="text" name="nomeConjuge" class="input-field" placeholder="Nome do Cônjuge">
+                            </div>
+                            <div>
+                                <input type="date" name="dataCasamento" class="input-field text-gray-600" title="Data Casamento">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4 mt-4">
+                        <p class="text-sm font-bold text-gray-700 mb-2">Endereço Residencial</p>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div>
+                                <input type="text" name="cep" id="cep" class="input-field cep-mask" placeholder="CEP" onblur="buscarCep()">
+                            </div>
+                            <div class="md:col-span-2">
+                                <input type="text" name="endereco" id="logradouro" class="input-field" placeholder="Rua / Avenida">
+                            </div>
+                            <div>
+                                <input type="text" name="numero" class="input-field" placeholder="Número">
+                            </div>
+                            <div>
+                                <input type="text" name="bairro" id="bairro" class="input-field" placeholder="Bairro">
+                            </div>
+                            <div>
+                                <input type="text" name="cidade" id="localidade" class="input-field bg-gray-100" readonly>
+                            </div>
+                            <div>
+                                <input type="text" name="uf" id="uf" class="input-field bg-gray-100" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4 mt-4">
+                        <p class="text-sm font-bold text-gray-700 mb-2">Dados Eclesiásticos</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" name="igrejaSede" class="input-field" placeholder="Igreja / Ministério (Ex: ADSA Brasil)" required>
+                            <input type="text" name="pastorPresidente" class="input-field" placeholder="Pastor Presidente" required>
+                            <input type="text" name="campo" class="input-field" placeholder="Campo / Cidade">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-gray-500">Batismo</label>
+                                    <input type="date" name="dataBatismo" class="input-field text-gray-600 text-sm">
+                                </div>
+                                <div id="divConsagracaoAnt" class="hidden">
+                                    <label class="text-[10px] uppercase font-bold text-gray-500">Consagração Ant.</label>
+                                    <input type="date" name="dataConsagracaoAnt" class="input-field text-gray-600 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="goToStep(2)" class="w-full mt-8 bg-blue-900 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-800 transition flex justify-center items-center gap-2">
+                    Avançar para Biometria <i class="fa-solid fa-fingerprint"></i>
                 </button>
             </div>
 
             <div id="step2" class="p-8 hidden-step">
-                <h2 class="text-xl font-bold text-gray-800 mb-1">Validação Documental</h2>
-                <p class="text-sm text-gray-500 mb-6">Precisamos de fotos nítidas dos seus documentos. Siga as instruções.</p>
+                <h2 class="text-xl font-bold text-gray-800 mb-1">Validação de Identidade</h2>
+                <p class="text-sm text-gray-500 mb-6">Use a câmera para capturar documentos nítidos.</p>
 
                 <div class="space-y-4" id="docList">
                     
-                    <div class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarCaptura('foto_rosto', 'Foto de Rosto', 'square')">
+                    <div class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarCaptura('foto_rosto', 'Foto Credencial (Rosto)', 'square')">
                         <div class="flex items-center gap-3">
-                            <div class="bg-blue-100 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-user"></i></div>
+                            <div class="bg-blue-100 text-blue-600 w-12 h-12 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-user-tie"></i></div>
                             <div>
-                                <p class="font-bold text-gray-800 text-sm">Foto de Rosto (Selfie)</p>
-                                <p class="text-xs text-gray-500" id="status-foto_rosto">Pendente</p>
+                                <p class="font-bold text-gray-800 text-sm">Foto para Credencial</p>
+                                <p class="text-xs text-gray-500">Fundo claro, sem óculos, roupa social.</p>
+                                <p class="text-xs font-bold mt-1 text-yellow-600" id="status-foto_rosto">Pendente</p>
                             </div>
                         </div>
-                        <i class="fa-solid fa-camera text-gray-400"></i>
+                        <i class="fa-solid fa-camera text-gray-400 text-xl"></i>
                         <input type="hidden" name="foto_rosto" id="input-foto_rosto">
                     </div>
 
                     <div class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarCaptura('rg_frente', 'RG (Frente com Foto)', 'rect')">
                         <div class="flex items-center gap-3">
-                            <div class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-id-card"></i></div>
+                            <div class="bg-gray-100 text-gray-600 w-12 h-12 rounded-full flex items-center justify-center text-xl"><i class="fa-regular fa-id-card"></i></div>
                             <div>
                                 <p class="font-bold text-gray-800 text-sm">RG (Frente)</p>
-                                <p class="text-xs text-gray-500" id="status-rg_frente">Pendente</p>
+                                <p class="text-xs text-gray-500">Documento fora do plástico.</p>
+                                <p class="text-xs font-bold mt-1 text-yellow-600" id="status-rg_frente">Pendente</p>
                             </div>
                         </div>
-                        <i class="fa-solid fa-camera text-gray-400"></i>
+                        <i class="fa-solid fa-camera text-gray-400 text-xl"></i>
                         <input type="hidden" name="rg_frente" id="input-rg_frente">
                     </div>
 
                     <div class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarCaptura('rg_verso', 'RG (Verso com CPF)', 'rect')">
                         <div class="flex items-center gap-3">
-                            <div class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-id-card"></i></div>
+                            <div class="bg-gray-100 text-gray-600 w-12 h-12 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-fingerprint"></i></div>
                             <div>
                                 <p class="font-bold text-gray-800 text-sm">RG (Verso)</p>
-                                <p class="text-xs text-gray-500" id="status-rg_verso">Pendente</p>
+                                <p class="text-xs text-gray-500">Parte com o número do CPF.</p>
+                                <p class="text-xs font-bold mt-1 text-yellow-600" id="status-rg_verso">Pendente</p>
                             </div>
                         </div>
-                        <i class="fa-solid fa-camera text-gray-400"></i>
+                        <i class="fa-solid fa-camera text-gray-400 text-xl"></i>
                         <input type="hidden" name="rg_verso" id="input-rg_verso">
-                    </div>
-
-                    <div class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarUpload('antecedentes')">
-                        <div class="flex items-center gap-3">
-                            <div class="bg-gray-100 text-gray-600 w-10 h-10 rounded-full flex items-center justify-center"><i class="fa-solid fa-file-shield"></i></div>
-                            <div>
-                                <p class="font-bold text-gray-800 text-sm">Antecedentes Criminais</p>
-                                <p class="text-xs text-gray-500" id="status-antecedentes">Pendente (PDF ou Foto)</p>
-                            </div>
-                        </div>
-                        <i class="fa-solid fa-upload text-gray-400"></i>
-                        <input type="file" id="upload-antecedentes" class="hidden" accept="application/pdf, image/*" onchange="confirmarUpload('antecedentes')">
                     </div>
                 </div>
 
                 <div class="flex gap-4 mt-8">
                     <button type="button" onclick="goToStep(1)" class="w-1/3 bg-gray-200 text-gray-700 py-3 rounded-xl font-bold">Voltar</button>
-                    <button type="button" onclick="validarDocs()" class="w-2/3 bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-green-700">
-                        Finalizar Inscrição <i class="fa-solid fa-check ml-2"></i>
+                    <button type="button" onclick="goToStep(3)" class="w-2/3 bg-blue-900 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-blue-800">
+                        Próxima Etapa <i class="fa-solid fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="step3" class="p-8 hidden-step">
+                <h2 class="text-xl font-bold text-gray-800 mb-1">Documentação Complementar</h2>
+                <p class="text-sm text-gray-500 mb-6">Anexe os arquivos PDF ou imagens solicitados.</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" onclick="document.getElementById('file-teologia').click()">
+                        <i class="fa-solid fa-book-bible text-2xl text-blue-900 mb-2"></i>
+                        <p class="text-sm font-bold text-gray-700">Certificado Teologia</p>
+                        <p class="text-xs text-gray-400" id="lbl-teologia">Clique para anexar</p>
+                        <input type="file" id="file-teologia" class="hidden" onchange="updateFileLabel(this, 'lbl-teologia')">
+                    </div>
+
+                    <div class="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" onclick="document.getElementById('file-casamento').click()">
+                        <i class="fa-solid fa-ring text-2xl text-blue-900 mb-2"></i>
+                        <p class="text-sm font-bold text-gray-700">Certidão Casamento</p>
+                        <p class="text-xs text-gray-400" id="lbl-casamento">Se casado (Opcional)</p>
+                        <input type="file" id="file-casamento" class="hidden" onchange="updateFileLabel(this, 'lbl-casamento')">
+                    </div>
+
+                    <div class="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" onclick="document.getElementById('file-endereco').click()">
+                        <i class="fa-solid fa-map-location-dot text-2xl text-blue-900 mb-2"></i>
+                        <p class="text-sm font-bold text-gray-700">Comp. Endereço</p>
+                        <p class="text-xs text-gray-400" id="lbl-endereco">Clique para anexar</p>
+                        <input type="file" id="file-endereco" class="hidden" onchange="updateFileLabel(this, 'lbl-endereco')">
+                    </div>
+
+                    <div class="border border-dashed border-gray-300 rounded-lg p-4 text-center hover:bg-gray-50 cursor-pointer" onclick="document.getElementById('file-antecedentes').click()">
+                        <i class="fa-solid fa-file-shield text-2xl text-blue-900 mb-2"></i>
+                        <p class="text-sm font-bold text-gray-700">Antecedentes Criminais</p>
+                        <p class="text-xs text-gray-400" id="lbl-antecedentes">Clique para anexar</p>
+                        <input type="file" id="file-antecedentes" class="hidden" onchange="updateFileLabel(this, 'lbl-antecedentes')">
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                    <label class="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" id="termoAceite" class="mt-1 w-5 h-5 text-blue-900 rounded border-gray-300">
+                        <span class="text-sm text-gray-700">
+                            Declaro que as informações prestadas são verdadeiras, assumindo total responsabilidade legal. Estou ciente do <strong>Termo de Comprometimento Ministerial da CONADIBE</strong> e autorizo o uso da minha imagem para a confecção da credencial.
+                        </span>
+                    </label>
+                </div>
+
+                <div class="flex gap-4 mt-8">
+                    <button type="button" onclick="goToStep(2)" class="w-1/3 bg-gray-200 text-gray-700 py-3 rounded-xl font-bold">Voltar</button>
+                    <button type="submit" class="w-2/3 bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 flex justify-center items-center gap-2">
+                        FINALIZAR INSCRIÇÃO <i class="fa-solid fa-check-circle"></i>
                     </button>
                 </div>
             </div>
@@ -173,39 +330,36 @@
     <div id="cameraModal" class="scanner-overlay">
         <div id="cameraInstructions" class="bg-white p-6 rounded-2xl max-w-sm text-center m-4">
             <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i class="fa-solid fa-lightbulb"></i>
+                <i class="fa-solid fa-camera"></i>
             </div>
-            <h3 class="font-bold text-lg mb-2">Dicas para uma boa foto</h3>
+            <h3 class="font-bold text-lg mb-2" id="camInstructionTitle">Foto do Documento</h3>
             <ul class="text-left text-sm text-gray-600 space-y-2 mb-6">
-                <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Vá para um local bem iluminado.</li>
-                <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Retire o documento do plástico.</li>
-                <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Apoie sobre uma superfície escura.</li>
-                <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Evite reflexos (Flash).</li>
+                <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Local iluminado.</li>
+                <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Sem reflexo (Flash).</li>
+                <li><i class="fa-solid fa-check text-green-500 mr-2"></i> Documento fora do plástico.</li>
             </ul>
-            <button onclick="abrirCameraReal()" class="w-full bg-blue-900 text-white py-3 rounded-xl font-bold">Entendi, abrir câmera</button>
+            <button onclick="abrirCameraReal()" class="w-full bg-blue-900 text-white py-3 rounded-xl font-bold">Abrir Câmera</button>
             <button onclick="fecharCameraModal()" class="w-full mt-2 text-gray-500 py-2 text-sm">Cancelar</button>
         </div>
 
         <div id="cameraInterface" class="w-full h-full relative hidden flex flex-col items-center justify-center bg-black">
-            <p id="camTitle" class="absolute top-8 text-white font-bold text-lg drop-shadow-md z-20">Título Doc</p>
-            
+            <p id="camTitle" class="absolute top-8 text-white font-bold text-lg drop-shadow-md z-20">Captura</p>
             <div class="relative w-full flex-1 flex items-center justify-center overflow-hidden">
                 <video id="video" autoplay playsinline class="absolute min-w-full min-h-full object-cover"></video>
                 <div id="scanFrame" class="scanner-frame z-10"></div>
             </div>
-
             <div class="absolute bottom-10 z-20 flex flex-col items-center w-full gap-4">
-                <p class="text-white text-sm bg-black/50 px-3 py-1 rounded-full">Encaixe o documento na marcação</p>
                 <div class="flex items-center gap-8">
                     <button onclick="fecharCameraModal()" class="text-white p-4"><i class="fa-solid fa-xmark text-2xl"></i></button>
                     <button onclick="tirarFoto()" class="w-16 h-16 bg-white rounded-full border-4 border-gray-300 shadow-lg active:scale-95 transition"></button>
-                    <button class="text-white p-4 opacity-0"><i class="fa-solid fa-rotate text-2xl"></i></button> </div>
+                    <button class="text-white p-4 opacity-0"><i class="fa-solid fa-rotate text-2xl"></i></button>
+                </div>
             </div>
             <canvas id="canvas" class="hidden"></canvas>
         </div>
 
         <div id="photoPreview" class="bg-white p-4 rounded-2xl max-w-sm w-full m-4 hidden text-center">
-            <h3 class="font-bold text-gray-800 mb-4">A foto ficou nítida?</h3>
+            <h3 class="font-bold text-gray-800 mb-4">A imagem está nítida?</h3>
             <img id="imgPreview" class="w-full rounded-lg border mb-4">
             <div class="flex gap-3">
                 <button onclick="abrirCameraReal()" class="flex-1 py-3 border border-gray-300 rounded-lg font-bold text-gray-600">Tentar Novamente</button>
@@ -215,45 +369,94 @@
     </div>
 
     <script>
-        // Variáveis de Estado
+        // --- ESTADO GLOBAL ---
         let currentDocType = '';
         let stream = null;
 
-        // Máscaras
         $(document).ready(function(){
             $('.cpf-mask').mask('000.000.000-00');
+            $('.phone-mask').mask('(00) 00000-0000');
+            $('.cep-mask').mask('00000-000');
         });
 
-        // Navegação
+        // --- NAVEGAÇÃO ---
         function goToStep(step) {
-            document.getElementById('stepNumber').innerText = step;
+            // Validações Básicas ao Avançar
             if(step === 2) {
-                // Validação simples
                 const nome = document.querySelector('input[name="nome"]').value;
-                if(!nome) return alert("Preencha seu nome antes de avançar.");
-                
-                document.getElementById('step1').classList.add('hidden-step');
-                document.getElementById('step1').classList.remove('active-step');
-                document.getElementById('step2').classList.remove('hidden-step');
-                document.getElementById('step2').classList.add('active-step');
-            } else {
-                document.getElementById('step2').classList.add('hidden-step');
-                document.getElementById('step2').classList.remove('active-step');
-                document.getElementById('step1').classList.remove('hidden-step');
-                document.getElementById('step1').classList.add('active-step');
+                if(!nome) return alert("Preencha o Nome Completo.");
+                // Adicione outras validações aqui
+            }
+            if(step === 3) {
+                // Valida se fotos foram tiradas
+                if(!document.getElementById('input-foto_rosto').value) return alert("A Foto da Credencial é obrigatória.");
+                if(!document.getElementById('input-rg_frente').value) return alert("A Foto do RG (Frente) é obrigatória.");
+            }
+
+            document.getElementById('stepNumber').innerText = step;
+            
+            // Esconde todos
+            [1, 2, 3].forEach(s => {
+                const el = document.getElementById('step' + s);
+                el.classList.add('hidden-step');
+                el.classList.remove('active-step');
+            });
+
+            // Mostra atual
+            const current = document.getElementById('step' + step);
+            current.classList.remove('hidden-step');
+            current.classList.add('active-step');
+            window.scrollTo(0, 0);
+        }
+
+        // --- LÓGICA DE CAMPOS CONDICIONAIS ---
+        function toggleReconhecimento() {
+            const tipo = document.querySelector('input[name="tipoSolicitacao"]:checked').value;
+            const div = document.getElementById('divConsagracaoAnt');
+            if(tipo === 'RECONHECIMENTO') div.classList.remove('hidden');
+            else div.classList.add('hidden');
+        }
+
+        function toggleConjuge() {
+            const st = document.getElementById('estadoCivil').value;
+            const div = document.getElementById('areaConjuge');
+            if(st === 'Casado') div.classList.remove('hidden');
+            else div.classList.add('hidden');
+        }
+
+        function updateFileLabel(input, labelId) {
+            if(input.files && input.files[0]) {
+                document.getElementById(labelId).innerText = input.files[0].name;
+                document.getElementById(labelId).classList.add('text-green-600', 'font-bold');
             }
         }
 
-        // --- LÓGICA DE CAPTURA ESTILO BANCO ---
+        function buscarCep() {
+            const cep = document.getElementById('cep').value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(!data.erro) {
+                            document.getElementById('logradouro').value = data.logradouro;
+                            document.getElementById('bairro').value = data.bairro;
+                            document.getElementById('localidade').value = data.localidade;
+                            document.getElementById('uf').value = data.uf;
+                        }
+                    });
+            }
+        }
+
+        // --- LÓGICA DA CÂMERA (SCANNER) ---
         function iniciarCaptura(tipo, titulo, formato) {
             currentDocType = tipo;
             document.getElementById('camTitle').innerText = titulo;
+            document.getElementById('camInstructionTitle').innerText = titulo;
             
-            // Ajusta o formato da máscara (Quadrada para rosto, Retangular para doc)
             const frame = document.getElementById('scanFrame');
             if(formato === 'square') {
                 frame.style.aspectRatio = '1/1';
-                frame.style.borderRadius = '50%'; // Círculo para rosto
+                frame.style.borderRadius = '50%'; // Selfie redonda
             } else {
                 frame.style.aspectRatio = '1.58/1';
                 frame.style.borderRadius = '12px';
@@ -271,7 +474,6 @@
             document.getElementById('cameraInterface').classList.remove('hidden');
 
             try {
-                // Tenta câmera traseira para docs, frontal para rosto
                 const facingMode = currentDocType === 'foto_rosto' ? 'user' : 'environment';
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facingMode } });
                 document.getElementById('video').srcObject = stream;
@@ -290,69 +492,40 @@
             const video = document.getElementById('video');
             const canvas = document.getElementById('canvas');
             const context = canvas.getContext('2d');
-
-            // Captura resolução total
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0);
-
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
             
-            // Mostra Preview
             document.getElementById('imgPreview').src = dataUrl;
             document.getElementById('cameraInterface').classList.add('hidden');
             document.getElementById('photoPreview').classList.remove('hidden');
-            
-            // Para o stream para economizar bateria
             if(stream) stream.getTracks().forEach(t => t.stop());
         }
 
         function salvarFoto() {
             const dataUrl = document.getElementById('imgPreview').src;
-            
-            // Salva no input hidden
             document.getElementById('input-' + currentDocType).value = dataUrl;
             
-            // Atualiza UI do Card
             const statusText = document.getElementById('status-' + currentDocType);
-            statusText.innerText = "Capturado com Sucesso";
-            statusText.classList.add('text-green-600', 'font-bold');
-            statusText.parentElement.parentElement.parentElement.classList.remove('pending');
-            statusText.parentElement.parentElement.parentElement.classList.add('completed');
+            statusText.innerText = "Capturado";
+            statusText.className = "text-xs font-bold mt-1 text-green-600";
+            
+            const card = statusText.closest('.doc-card');
+            card.classList.remove('pending');
+            card.classList.add('completed');
             
             fecharCameraModal();
         }
 
-        // --- LÓGICA DE UPLOAD NORMAL (PDF) ---
-        function iniciarUpload(tipo) {
-            currentDocType = tipo;
-            document.getElementById('upload-' + tipo).click();
-        }
-        
-        function confirmarUpload(tipo) {
-            const statusText = document.getElementById('status-' + tipo);
-            statusText.innerText = "Arquivo Selecionado";
-            statusText.classList.add('text-green-600', 'font-bold');
-            statusText.parentElement.parentElement.parentElement.classList.remove('pending');
-            statusText.parentElement.parentElement.parentElement.classList.add('completed');
-        }
-
-        function validarDocs() {
-            // Verifica se todos os obrigatórios estão preenchidos
-            const obrigatórios = ['foto_rosto', 'rg_frente', 'rg_verso'];
-            let pendente = false;
-            
-            obrigatórios.forEach(doc => {
-                if(!document.getElementById('input-' + doc).value) pendente = true;
-            });
-
-            if(pendente) {
-                alert("Por favor, capture todas as fotos obrigatórias (Rosto e RG).");
-            } else {
-                alert("Tudo pronto! Iniciando envio criptografado...");
-                // Aqui entraria o fetch para o Google Apps Script
+        // --- SUBMIT ---
+        document.getElementById('ministerForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            if(!document.getElementById('termoAceite').checked) {
+                return alert("Você precisa aceitar o termo de comprometimento.");
             }
-        }
+            alert("Cadastro enviado com sucesso! \nSeus dados entrarão em análise pela secretaria.");
+        });
     </script>
 </body>
 </html>
