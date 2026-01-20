@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in e Assento - CONADIBE</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .seat-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; max-width: 600px; margin: 0 auto; }
+        .seat {
+            height: 40px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white;
+        }
+        .seat.available { background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; }
+        .seat.available:hover { background-color: #3b82f6; color: white; transform: scale(1.1); }
+        .seat.selected { background-color: #d4a017; color: white; border: 2px solid #b45309; box-shadow: 0 0 10px rgba(212, 160, 23, 0.5); }
+        .seat.taken { background-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; opacity: 0.5; }
+        
+        /* Modal de Bloqueio (Ampulheta) */
+        .modal-lock { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; items-center; flex-direction: column; color: white; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center py-10">
+
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold">Escolha seu Lugar</h1>
+                <p class="text-sm opacity-80">Olá, Pr. Stanrley. Seu setor designado é: <strong class="text-yellow-400">SETOR A (Nave)</strong></p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs">Evento em:</p>
+                <p class="font-bold text-lg">05 JUL 2026</p>
+            </div>
+        </div>
+
+        <div class="p-8 flex flex-col md:flex-row gap-8">
+            
+            <div class="flex-1">
+                <div class="w-full bg-gray-200 h-12 rounded-lg mb-8 flex items-center justify-center text-gray-500 font-bold shadow-inner">
+                    PÚLPITO / ALTAR
+                </div>
+                
+                <div class="seat-grid" id="seatMap">
+                    </div>
+
+                <div class="flex justify-center gap-4 mt-6 text-sm">
+                    <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-200 border rounded"></div> Livre</div>
+                    <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-500 rounded"></div> Selecionado</div>
+                    <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-300 opacity-50 rounded"></div> Ocupado</div>
+                </div>
+            </div>
+
+            <div class="w-full md:w-80 bg-gray-50 p-6 rounded-xl border border-gray-200 h-fit">
+                <h3 class="font-bold text-gray-800 mb-4">Resumo do Check-in</h3>
+                
+                <div class="mb-4">
+                    <p class="text-xs text-gray-500 uppercase">Assento Selecionado</p>
+                    <p id="selectedSeatDisplay" class="text-3xl font-bold text-blue-900">--</p>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-xs text-gray-500 uppercase">Titular</p>
+                    <p class="font-medium">Stanrley Roger</p>
+                    <p class="text-xs text-gray-400">CPF: ***.745.158-**</p>
+                </div>
+
+                <button id="btnConfirm" onclick="confirmarAssento()" disabled class="w-full bg-gray-300 text-white font-bold py-4 rounded-xl transition cursor-not-allowed">
+                    CONFIRMAR & GERAR CREDENCIAL
+                </button>
+                <p class="text-xs text-gray-400 mt-2 text-center">Ao confirmar, o QR Code será gerado.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalLock" class="modal-lock">
+        <div class="text-center">
+            <i class="fa-solid fa-hourglass-half fa-spin text-5xl text-yellow-500 mb-4"></i>
+            <h2 class="text-2xl font-bold">Verificando Disponibilidade...</h2>
+            <p class="text-gray-400 mt-2">Estamos garantindo seu lugar. Não feche esta janela.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. GERAÇÃO DO MAPA (Simulada) ---
+        const seatMap = document.getElementById('seatMap');
+        let selectedSeat = null;
+
+        // Gera 100 assentos para exemplo
+        for (let i = 1; i <= 100; i++) {
+            const seat = document.createElement('div');
+            seat.className = 'seat available';
+            seat.innerText = 'A' + i;
+            seat.dataset.id = 'A' + i;
+            
+            // Simula alguns ocupados
+            if ([5, 12, 13, 45, 88].includes(i)) {
+                seat.className = 'seat taken';
+            }
+
+            seat.onclick = () => selectSeat(seat);
+            seatMap.appendChild(seat);
+        }
+
+        function selectSeat(el) {
+            if (el.classList.contains('taken')) return;
+
+            // Deseleciona anterior
+            document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+            
+            // Seleciona novo
+            el.classList.add('selected');
+            selectedSeat = el.dataset.id;
+            
+            // Atualiza UI
+            document.getElementById('selectedSeatDisplay').innerText = selectedSeat;
+            const btn = document.getElementById('btnConfirm');
+            btn.disabled = false;
+            btn.classList.remove('bg-gray-300', 'cursor-not-allowed');
+            btn.classList.add('bg-green-600', 'hover:bg-green-700', 'shadow-lg');
+        }
+
+        // --- 2. LÓGICA DE CONCORRÊNCIA (Simulação do Backend) ---
+        function confirmarAssento() {
+            if (!selectedSeat) return;
+
+            const modal = document.getElementById('modalLock');
+            modal.style.display = 'flex';
+
+            // SIMULAÇÃO DO REQUEST AO GOOGLE APPS SCRIPT
+            /*
+             * No Backend (Apps Script), usaríamos LockService:
+             * var lock = LockService.getScriptLock();
+             * if (lock.tryLock(5000)) { // Tenta travar por 5s
+             * // Verifica se assento ainda está livre na planilha
+             * // Se sim, escreve USER_ID
+             * // Se não, retorna erro "Assento acabou de ser ocupado"
+             * }
+             */
+
+            setTimeout(() => {
+                // Sucesso Simulado
+                modal.innerHTML = `
+                    <div class="text-center animate-bounce">
+                        <i class="fa-solid fa-check-circle text-6xl text-green-500 mb-4"></i>
+                        <h2 class="text-3xl font-bold">Sucesso!</h2>
+                        <p class="text-gray-300 mt-2">Assento ${selectedSeat} confirmado.</p>
+                        <p class="text-sm text-gray-400 mt-4">Enviando credencial para seu e-mail...</p>
+                    </div>
+                `;
+                
+                // Redireciona para download ou exibe credencial final
+                setTimeout(() => {
+                    alert("Redirecionando para sua Credencial PDF...");
+                }, 2000);
+            }, 2500); // Tempo fake de processamento
+        }
+    </script>
+</body>
+</html>
