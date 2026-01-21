@@ -31,7 +31,7 @@
         .scanner-frame {
             width: 85%; max-width: 400px; 
             border: 2px solid rgba(255,255,255,0.8); border-radius: 12px;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7); /* Efeito de Foco */
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
             position: relative; overflow: hidden; transition: all 0.3s;
         }
         
@@ -39,8 +39,7 @@
         .doc-card { transition: all 0.3s; border: 1px solid #e2e8f0; }
         .doc-card.completed { border-color: #10b981; background-color: #f0fdf4; }
         .doc-card.pending { border-left: 4px solid #d4a017; }
-        .doc-card.error { border-color: #ef4444; background-color: #fef2f2; }
-
+        
         /* Animações */
         .hidden-step { display: none; }
         .active-step { animation: fadeIn 0.4s ease-out; }
@@ -119,7 +118,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">CPF</label>
                             <input type="text" name="cpf" class="input-field cpf-mask" placeholder="000.000.000-00" required>
@@ -131,6 +130,10 @@
                         <div>
                             <label class="text-xs font-bold text-gray-500 uppercase">Celular (Zap)</label>
                             <input type="text" name="celular" class="input-field phone-mask" placeholder="(00) 00000-0000" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">E-mail</label>
+                            <input type="email" name="email" class="input-field" placeholder="exemplo@email.com" required>
                         </div>
                     </div>
 
@@ -144,15 +147,6 @@
                             <input type="text" name="nomePai" class="input-field">
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-gray-500 uppercase">Escolaridade</label>
-                            <select name="escolaridade" class="input-field bg-white">
-                            <option value="Medio">Ensino Médio</option>
-                            <option value="Superior">Superior</option>
-                            <option value="Pos">Pós-Graduação</option>
-                            </select>
-                        </div>
-                        </div>
-                            
                             <label class="text-xs font-bold text-gray-500 uppercase">Estado Civil</label>
                             <select name="estadoCivil" id="estadoCivil" class="input-field bg-white" onchange="toggleConjuge()" required>
                                 <option value="Solteiro">Solteiro(a)</option>
@@ -162,14 +156,14 @@
                             </select>
                         </div>
                         <div>
-                            
-                            
-                                
-                                
-                                
-                            
-                        
-                    
+                            <label class="text-xs font-bold text-gray-500 uppercase">Escolaridade</label>
+                            <select name="escolaridade" class="input-field bg-white">
+                                <option value="Medio">Ensino Médio</option>
+                                <option value="Superior">Superior</option>
+                                <option value="Pos">Pós-Graduação</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <div id="areaConjuge" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
                         <h4 class="text-sm font-bold text-blue-900 mb-2">Dados do Cônjuge</h4>
@@ -474,15 +468,47 @@
             }
         }
 
+        function updateFileLabel(input, labelId) {
+            if(input.files && input.files[0]) {
+                document.getElementById(labelId).innerText = input.files[0].name;
+                document.getElementById(labelId).classList.add('text-green-600', 'font-bold');
+            }
+        }
+
+        function buscarCep() {
+            const cep = document.getElementById('cep').value.replace(/\D/g, '');
+            if (cep.length === 8) {
+                fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(!data.erro) {
+                            document.getElementById('logradouro').value = data.logradouro;
+                            document.getElementById('bairro').value = data.bairro;
+                            document.getElementById('localidade').value = data.localidade;
+                            document.getElementById('uf').value = data.uf;
+                        }
+                    });
+            }
+        }
+
+        function toggleReconhecimento() {
+            const tipo = document.querySelector('input[name="tipoSolicitacao"]:checked').value;
+            const div = document.getElementById('divConsagracaoAnt');
+            if(tipo === 'RECONHECIMENTO') div.classList.remove('hidden');
+            else div.classList.add('hidden');
+        }
+
         function goToStep(step) {
-            // Validações de transição
+            // Validações de transição da Etapa 1 para 2
             if(step === 2) {
                 const nome = document.querySelector('input[name="nome"]').value;
                 if(!nome) return alert("Preencha o Nome Completo.");
             }
+            
+            // Validações de transição da Etapa 2 para 3 (Biometria)
             if(step === 3) {
-                // Valida Docs
-                if(!document.getElementById('input-foto_rosto').value) return alert("A Selfie de Segurança é obrigatória.");
+                // Aqui estava o erro. Validamos os inputs da ETAPA 2 (biometria e rg), não os da etapa 3.
+                if(!document.getElementById('input-biometria_facial').value) return alert("A Selfie de Segurança é obrigatória.");
                 if(!document.getElementById('input-rg_frente').value) return alert("O Documento é obrigatório.");
             }
 
