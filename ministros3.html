@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro Oficial de Ministros - Validação Biométrica</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    
     <script async src="https://docs.opencv.org/4.5.4/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
@@ -14,8 +16,11 @@
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .navy-bg { background-color: #0d2d5a; }
+        
+        /* Cores Premium */
         .gold-accent { color: #d4a017; }
+        .bg-gold { background-color: #d4a017; }
+        .navy-bg { background-color: #0d2d5a; }
         
         /* Scanner Overlay */
         .scanner-overlay {
@@ -26,8 +31,8 @@
         .scanner-frame {
             width: 85%; max-width: 400px; 
             border: 2px solid rgba(255,255,255,0.8); border-radius: 12px;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
-            position: relative; overflow: hidden;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7); /* Efeito de Foco */
+            position: relative; overflow: hidden; transition: all 0.3s;
         }
         
         /* Status Card */
@@ -36,11 +41,14 @@
         .doc-card.pending { border-left: 4px solid #d4a017; }
         .doc-card.error { border-color: #ef4444; background-color: #fef2f2; }
 
+        /* Animações */
         .hidden-step { display: none; }
         .active-step { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: 0; } }
 
+        /* Inputs */
         .input-field { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; transition: 0.3s; }
+        .input-field:focus { border-color: #0d2d5a; outline: none; box-shadow: 0 0 0 3px rgba(13, 45, 90, 0.1); }
     </style>
 </head>
 <body class="pb-10">
@@ -65,29 +73,147 @@
                 <h2 class="text-xl font-bold text-gray-800 mb-1">Dados Pessoais e Eclesiásticos</h2>
                 <p class="text-sm text-gray-500 mb-6">Preencha todos os campos obrigatórios.</p>
 
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                    <label class="block text-sm font-bold text-blue-900 mb-2">Natureza da Solicitação</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipoSolicitacao" value="CONSAGRACAO" class="peer sr-only" checked onchange="toggleReconhecimento()">
+                            <div class="p-3 bg-white border rounded-lg text-center peer-checked:border-blue-600 peer-checked:text-blue-800 peer-checked:shadow-sm transition">
+                                <span class="font-bold text-sm">Consagração</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="tipoSolicitacao" value="RECONHECIMENTO" class="peer sr-only" onchange="toggleReconhecimento()">
+                            <div class="p-3 bg-white border rounded-lg text-center peer-checked:border-blue-600 peer-checked:text-blue-800 peer-checked:shadow-sm transition">
+                                <span class="font-bold text-sm">Reconhecimento</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" name="nome" class="input-field" placeholder="Nome Completo" required>
-                        <select name="cargo" class="input-field bg-white" required>
-                            <option value="" disabled selected>Cargo...</option>
-                            <option value="PASTOR">Pastor(a)</option>
-                            <option value="EVANGELISTA">Evangelista</option>
-                            <option value="MISSIONARIO">Missionário(a)</option>
-                        </select>
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <input type="text" name="cpf" class="cpf-mask input-field" placeholder="CPF" required>
-                        <input type="date" name="nascimento" class="input-field" required>
-                        <select name="estadoCivil" id="estadoCivil" class="input-field bg-white" onchange="toggleConjuge()" required>
-                            <option value="Solteiro">Solteiro</option>
-                            <option value="Casado">Casado</option>
-                        </select>
-                        <input type="text" name="celular" class="phone-mask input-field" placeholder="WhatsApp" required>
-                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-3">
+                            <label class="text-xs font-bold text-gray-500 uppercase">Nome Completo</label>
+                            <input type="text" name="nome" class="input-field" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Cargo Pretendido</label>
+                            <select name="cargo" class="input-field bg-white" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="EVANGELISTA">Evangelista</option>
+                                <option value="MISSIONARIO">Missionário(a)</option>
+                                <option value="PASTOR">Pastor(a)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Data Nascimento</label>
+                            <input type="date" name="nascimento" class="input-field text-gray-600" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Sexo</label>
+                            <select name="sexo" class="input-field bg-white" required>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Feminino">Feminino</option>
+                            </select>
+                        </div>
                     </div>
 
-                <button type="button" onclick="goToStep(2)" class="w-full mt-8 bg-blue-900 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-800 transition">
-                    Avançar para Biometria <i class="fa-solid fa-fingerprint ml-2"></i>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">CPF</label>
+                            <input type="text" name="cpf" class="input-field cpf-mask" placeholder="000.000.000-00" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">RG</label>
+                            <input type="text" name="rg" class="input-field" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Celular (Zap)</label>
+                            <input type="text" name="celular" class="input-field phone-mask" placeholder="(00) 00000-0000" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Nome da Mãe</label>
+                            <input type="text" name="nomeMae" class="input-field" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Nome do Pai</label>
+                            <input type="text" name="nomePai" class="input-field">
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Estado Civil</label>
+                            <select name="estadoCivil" id="estadoCivil" class="input-field bg-white" onchange="toggleConjuge()" required>
+                                <option value="Solteiro">Solteiro(a)</option>
+                                <option value="Casado">Casado(a)</option>
+                                <option value="Divorciado">Divorciado(a)</option>
+                                <option value="Viuvo">Viúvo(a)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Escolaridade</label>
+                            <select name="escolaridade" class="input-field bg-white">
+                                <option value="Medio">Ensino Médio</option>
+                                <option value="Superior">Superior</option>
+                                <option value="Pos">Pós-Graduação</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="areaConjuge" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 class="text-sm font-bold text-blue-900 mb-2">Dados do Cônjuge</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="text-[10px] uppercase font-bold text-gray-500">Nome Cônjuge</label>
+                                <input type="text" name="nomeConjuge" class="input-field">
+                            </div>
+                            <div>
+                                <label class="text-[10px] uppercase font-bold text-gray-500">Nascimento Cônjuge</label>
+                                <input type="date" name="nascimentoConjuge" class="input-field text-gray-600">
+                            </div>
+                            <div>
+                                <label class="text-[10px] uppercase font-bold text-gray-500">Data Casamento</label>
+                                <input type="date" name="dataCasamento" class="input-field text-gray-600">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4 mt-4">
+                        <p class="text-sm font-bold text-gray-700 mb-2">Endereço Residencial</p>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div><input type="text" name="cep" id="cep" class="input-field cep-mask" placeholder="CEP" onblur="buscarCep()"></div>
+                            <div class="md:col-span-2"><input type="text" name="endereco" id="logradouro" class="input-field" placeholder="Rua / Avenida"></div>
+                            <div><input type="text" name="numero" class="input-field" placeholder="Número"></div>
+                            <div><input type="text" name="bairro" id="bairro" class="input-field" placeholder="Bairro"></div>
+                            <div><input type="text" name="cidade" id="localidade" class="input-field bg-gray-100" readonly></div>
+                            <div><input type="text" name="uf" id="uf" class="input-field bg-gray-100" readonly></div>
+                        </div>
+                    </div>
+
+                    <div class="border-t pt-4 mt-4">
+                        <p class="text-sm font-bold text-gray-700 mb-2">Dados Eclesiásticos</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="text" name="igrejaSede" class="input-field" placeholder="Igreja / Ministério (Ex: ADSA Brasil)" required>
+                            <input type="text" name="pastorPresidente" class="input-field" placeholder="Pastor Presidente" required>
+                            <input type="text" name="campo" class="input-field" placeholder="Campo / Cidade">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-[10px] uppercase font-bold text-gray-500">Batismo</label>
+                                    <input type="date" name="dataBatismo" class="input-field text-gray-600 text-sm">
+                                </div>
+                                <div id="divConsagracaoAnt" class="hidden">
+                                    <label class="text-[10px] uppercase font-bold text-gray-500">Consagração Ant.</label>
+                                    <input type="date" name="dataConsagracaoAnt" class="input-field text-gray-600 text-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="goToStep(2)" class="w-full mt-8 bg-blue-900 text-white py-4 rounded-xl font-bold shadow-lg hover:bg-blue-800 transition flex justify-center items-center gap-2">
+                    Avançar para Biometria <i class="fa-solid fa-fingerprint"></i>
                 </button>
             </div>
 
@@ -95,6 +221,11 @@
                 <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6">
                     <h3 class="font-bold text-yellow-800 text-sm">🔒 Validação de Segurança</h3>
                     <p class="text-xs text-yellow-700">Esta etapa serve apenas para validar sua identidade. Estas fotos <strong>NÃO</strong> irão para a credencial.</p>
+                </div>
+
+                <div class="mb-4 flex items-center gap-2">
+                    <input type="checkbox" id="rgNovo" class="w-5 h-5 text-blue-600 rounded border-gray-300" onchange="toggleRgVerso()">
+                    <label for="rgNovo" class="text-sm font-medium text-gray-700 cursor-pointer">Meu documento é o Modelo Novo (CNH ou RG Único)</label>
                 </div>
 
                 <div class="space-y-4">
@@ -111,17 +242,30 @@
                         <input type="hidden" name="biometria_facial" id="input-biometria_facial">
                     </div>
 
-                    <div class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarCaptura('rg_frente', 'RG Frente', 'rect')">
+                    <div class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarCaptura('rg_frente', 'Foto do Documento', 'rect')">
                         <div class="flex items-center gap-3">
                             <div class="bg-gray-200 text-gray-600 w-12 h-12 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-id-card"></i></div>
                             <div>
-                                <p class="font-bold text-gray-800 text-sm">Documento (RG/CNH)</p>
-                                <p class="text-xs text-gray-500">Foto legível do documento.</p>
+                                <p class="font-bold text-gray-800 text-sm" id="label-rg-frente">RG (Frente)</p>
+                                <p class="text-xs text-gray-500">Foto legível e nítida.</p>
                                 <p class="text-xs font-bold mt-1 text-yellow-600 status-msg" id="status-rg_frente">Pendente</p>
                             </div>
                         </div>
                         <i class="fa-solid fa-camera text-gray-400 text-xl"></i>
                         <input type="hidden" name="rg_frente" id="input-rg_frente">
+                    </div>
+
+                    <div id="container-rg-verso" class="doc-card pending p-4 rounded-lg flex justify-between items-center cursor-pointer hover:bg-gray-50" onclick="iniciarCaptura('rg_verso', 'RG (Verso)', 'rect')">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-gray-200 text-gray-600 w-12 h-12 rounded-full flex items-center justify-center text-xl"><i class="fa-solid fa-fingerprint"></i></div>
+                            <div>
+                                <p class="font-bold text-gray-800 text-sm">RG (Verso)</p>
+                                <p class="text-xs text-gray-500">Parte com o número do CPF.</p>
+                                <p class="text-xs font-bold mt-1 text-yellow-600 status-msg" id="status-rg_verso">Pendente</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-camera text-gray-400 text-xl"></i>
+                        <input type="hidden" name="rg_verso" id="input-rg_verso">
                     </div>
                 </div>
 
@@ -135,32 +279,39 @@
 
             <div id="step3" class="p-8 hidden-step">
                 
-                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">5. Foto e Documentação</h2>
+                <p class="text-sm text-gray-600 mb-6">Siga rigorosamente o padrão abaixo para sua credencial.</p>
+
+                <div class="bg-blue-50 border-l-4 border-blue-900 p-4 mb-6 rounded-r-lg shadow-sm">
                     <div class="flex flex-col md:flex-row gap-6 items-center">
                         <div class="flex-shrink-0 relative">
-                            <img src="https://nextrisedev.github.io/AGE2026/ASSETS/FOTOCRED1.png" class="w-24 h-32 object-cover rounded-lg border-2 border-blue-300 shadow-md">
-                            <div class="absolute -bottom-2 -right-2 bg-green-500 text-white p-1 rounded-full text-xs"><i class="fa-solid fa-check"></i></div>
+                            <img src="https://nextrisedev.github.io/AGE2026/ASSETS/FOTOCRED1.png" alt="Modelo de Foto" class="w-32 h-40 object-cover rounded-lg border-2 border-blue-200 shadow-md">
+                            <p class="text-[10px] text-center text-gray-500 mt-1 uppercase font-bold">Modelo Padrão</p>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-blue-900 font-bold text-lg mb-1"><i class="fa-solid fa-id-badge mr-2"></i>Foto para Credencial</h3>
-                            <p class="text-sm text-blue-800 mb-3 leading-relaxed">Esta será a foto impressa no seu documento oficial. O sistema analisará a qualidade automaticamente.</p>
-                            <ul class="text-xs text-blue-700 grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <li class="flex items-center gap-2"><i class="fa-solid fa-user-tie"></i> Homens: Terno e Gravata</li>
-                                <li class="flex items-center gap-2"><i class="fa-solid fa-vest"></i> Mulheres: Roupa social discreta</li>
-                                <li class="flex items-center gap-2"><i class="fa-solid fa-image"></i> Fundo claro e neutro</li>
-                                <li class="flex items-center gap-2"><i class="fa-solid fa-eye"></i> Sem óculos escuros/boné</li>
+                            <h3 class="text-blue-900 font-bold text-lg mb-2">⚠️ Padrão Oficial para Credencial</h3>
+                            <ul class="text-sm text-gray-700 space-y-2 list-disc pl-4">
+                                <li><strong>Vestimenta:</strong> Traje social/eclesiástico (Homens: Terno e Gravata).</li>
+                                <li><strong>Fundo:</strong> Parede branca ou cinza claro, sem objetos atrás.</li>
+                                <li><strong>Iluminação:</strong> Ambiente claro, rosto bem iluminado, sem sombras.</li>
+                                <li><strong>Postura:</strong> Olhando para frente, enquadramento dos ombros para cima.</li>
                             </ul>
                         </div>
                     </div>
+                </div>
+
+                <div class="mb-8 p-6 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 text-center" id="photo-area">
+                    <label class="block text-lg font-bold text-gray-700 mb-4">Como deseja enviar sua foto?</label>
                     
-                    <div class="mt-6 flex gap-4">
-                        <button type="button" onclick="iniciarCaptura('foto_credencial', 'Foto da Credencial', 'square')" class="flex-1 bg-blue-900 text-white py-3 rounded-lg font-bold shadow hover:bg-blue-800 flex justify-center items-center gap-2">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="photo-buttons">
+                        <button type="button" onclick="iniciarCaptura('foto_credencial', 'Foto da Credencial', 'square')" class="py-3 px-4 bg-blue-900 text-white rounded-lg font-semibold hover:bg-blue-800 flex items-center justify-center gap-2 shadow-md">
                             <i class="fa-solid fa-camera"></i> Tirar Foto Agora
                         </button>
-                        <button type="button" onclick="iniciarUpload('foto_credencial')" class="flex-1 bg-white border border-blue-300 text-blue-900 py-3 rounded-lg font-bold hover:bg-blue-50 flex justify-center items-center gap-2">
-                            <i class="fa-solid fa-upload"></i> Enviar da Galeria
+                        <button type="button" onclick="document.getElementById('upload-foto_credencial').click()" class="py-3 px-4 bg-white border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 flex items-center justify-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-image"></i> Escolher da Galeria
                         </button>
                     </div>
+
                     <input type="file" id="upload-foto_credencial" class="hidden" accept="image/*" onchange="processarImagemArquivo(this, 'foto_credencial')">
                     <input type="hidden" name="foto_credencial" id="input-foto_credencial">
                     
@@ -169,44 +320,35 @@
 
                 <h3 class="font-bold text-gray-700 mb-4 border-b pb-2">Documentação Complementar</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div class="doc-card pending p-3 rounded-lg border flex items-center justify-between cursor-pointer hover:bg-gray-50" onclick="iniciarUpload('doc_teologia')">
+                    <div class="doc-card pending p-3 rounded-lg border flex items-center justify-between cursor-pointer hover:bg-gray-50" onclick="document.getElementById('file-teologia').click()">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-book-bible text-gray-400 text-lg"></i>
-                            <div class="text-sm">
-                                <p class="font-bold text-gray-700">Certificado Teologia</p>
-                                <p class="text-xs text-gray-400 status-msg" id="status-doc_teologia">Pendente</p>
-                            </div>
+                            <div class="text-sm"><p class="font-bold text-gray-700">Certificado Teologia</p><p class="text-xs text-gray-400 status-msg" id="status-doc_teologia">Pendente</p></div>
                         </div>
                         <i class="fa-solid fa-paperclip text-gray-300"></i>
-                        <input type="file" id="upload-doc_teologia" class="hidden" onchange="confirmarUpload('doc_teologia')">
+                        <input type="file" id="file-teologia" class="hidden" onchange="confirmarUpload('doc_teologia')">
                     </div>
 
-                    <div class="doc-card pending p-3 rounded-lg border flex items-center justify-between cursor-pointer hover:bg-gray-50" onclick="iniciarUpload('doc_antecedentes')">
+                    <div class="doc-card pending p-3 rounded-lg border flex items-center justify-between cursor-pointer hover:bg-gray-50" onclick="document.getElementById('file-antecedentes').click()">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-file-shield text-gray-400 text-lg"></i>
-                            <div class="text-sm">
-                                <p class="font-bold text-gray-700">Antecedentes Criminais</p>
-                                <p class="text-xs text-gray-400 status-msg" id="status-doc_antecedentes">Pendente</p>
-                            </div>
+                            <div class="text-sm"><p class="font-bold text-gray-700">Antecedentes Criminais</p><p class="text-xs text-gray-400 status-msg" id="status-doc_antecedentes">Pendente</p></div>
                         </div>
                         <i class="fa-solid fa-paperclip text-gray-300"></i>
-                        <input type="file" id="upload-doc_antecedentes" class="hidden" onchange="confirmarUpload('doc_antecedentes')">
+                        <input type="file" id="file-antecedentes" class="hidden" onchange="confirmarUpload('doc_antecedentes')">
                     </div>
                     
-                    <div id="boxCasamento" class="doc-card pending p-3 rounded-lg border flex items-center justify-between cursor-pointer hover:bg-gray-50 hidden" onclick="iniciarUpload('doc_casamento')">
+                    <div id="boxCasamento" class="doc-card pending p-3 rounded-lg border flex items-center justify-between cursor-pointer hover:bg-gray-50 hidden" onclick="document.getElementById('file-casamento').click()">
                         <div class="flex items-center gap-3">
                             <i class="fa-solid fa-ring text-gray-400 text-lg"></i>
-                            <div class="text-sm">
-                                <p class="font-bold text-gray-700">Certidão Casamento</p>
-                                <p class="text-xs text-gray-400 status-msg" id="status-doc_casamento">Pendente</p>
-                            </div>
+                            <div class="text-sm"><p class="font-bold text-gray-700">Certidão Casamento</p><p class="text-xs text-gray-400 status-msg" id="status-doc_casamento">Pendente</p></div>
                         </div>
                         <i class="fa-solid fa-paperclip text-gray-300"></i>
-                        <input type="file" id="upload-doc_casamento" class="hidden" onchange="confirmarUpload('doc_casamento')">
+                        <input type="file" id="file-casamento" class="hidden" onchange="confirmarUpload('doc_casamento')">
                     </div>
                 </div>
 
-                <div class="bg-gray-100 p-4 rounded-lg">
+                <div class="mt-6 bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
                     <label class="flex items-start gap-3 cursor-pointer">
                         <input type="checkbox" id="termoAceite" class="mt-1 w-5 h-5 text-blue-900 rounded border-gray-400">
                         <span class="text-xs text-gray-600 text-justify">
@@ -218,7 +360,7 @@
                 <div class="flex gap-4 mt-6">
                     <button type="button" onclick="goToStep(2)" class="w-1/3 bg-gray-200 text-gray-700 py-3 rounded-xl font-bold">Voltar</button>
                     <button type="submit" class="w-2/3 bg-green-600 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 flex justify-center items-center gap-2">
-                        FINALIZAR <i class="fa-solid fa-check-circle"></i>
+                        FINALIZAR INSCRIÇÃO <i class="fa-solid fa-check-circle"></i>
                     </button>
                 </div>
             </div>
@@ -229,18 +371,26 @@
     <div id="cameraModal" class="scanner-overlay">
         <div id="cameraInstructions" class="bg-white p-6 rounded-2xl max-w-sm text-center m-4 w-full">
             <h3 class="font-bold text-lg mb-2" id="camInstructionTitle">Posicione o Rosto</h3>
-            <p class="text-sm text-gray-600 mb-6">Segure o celular firme para evitar fotos tremidas.</p>
+            <p class="text-sm text-gray-600 mb-6">Segure o celular firme para evitar fotos tremidas. O sistema verificará a nitidez automaticamente.</p>
             <button onclick="abrirCameraReal()" class="w-full bg-blue-900 text-white py-3 rounded-xl font-bold">Abrir Câmera</button>
             <button onclick="fecharCameraModal()" class="w-full mt-2 text-gray-500 py-2 text-sm">Cancelar</button>
         </div>
 
         <div id="cameraInterface" class="w-full h-full relative hidden flex flex-col items-center justify-center bg-black">
             <video id="video" autoplay playsinline class="absolute min-w-full min-h-full object-cover"></video>
-            <div id="scanFrame" class="scanner-frame z-10 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)]"></div> <div class="absolute bottom-10 z-20 flex flex-col items-center gap-4">
-                <p id="msgBlur" class="text-white bg-red-500/80 px-4 py-1 rounded-full text-xs font-bold hidden">MUITO TREMIDA - SEGURE FIRME</p>
-                <button onclick="tirarFoto()" class="w-16 h-16 bg-white rounded-full border-4 border-gray-300 shadow-lg active:scale-95 transition"></button>
+            <div id="scanFrame" class="scanner-frame z-10 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)]"></div>
+            
+            <div class="absolute bottom-10 z-20 flex flex-col items-center gap-4">
+                <div id="blurWarning" class="hidden bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm animate-pulse shadow-lg flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> IMAGEM BORRADA! TENTE NOVAMENTE
+                </div>
+                
+                <div class="flex items-center gap-8">
+                    <button onclick="fecharCameraModal()" class="text-white p-4"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                    <button onclick="tirarFoto()" class="w-16 h-16 bg-white rounded-full border-4 border-gray-300 shadow-lg active:scale-95 transition"></button>
+                    <button class="text-white p-4 opacity-0"><i class="fa-solid fa-rotate text-2xl"></i></button>
+                </div>
             </div>
-            <button onclick="fecharCameraModal()" class="absolute top-4 right-4 text-white p-2 z-20"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <canvas id="canvas" class="hidden"></canvas>
         </div>
     </div>
@@ -251,7 +401,8 @@
         function onOpenCvReady() { openCvReady = true; console.log("OpenCV Ready"); }
 
         function verificarNitidez(canvasElement) {
-            if (!openCvReady) return true; // Se não carregou, aprova (fail-open)
+            // Se OpenCV não carregar (falha de rede), permite passar para não travar o usuário
+            if (!openCvReady) return true; 
 
             try {
                 let src = cv.imread(canvasElement);
@@ -265,17 +416,18 @@
                 let stddev = new cv.Mat();
                 cv.meanStdDev(laplacian, mean, stddev);
                 
+                // Variância Laplaciana (Métrica de Nitidez)
                 let variance = stddev.data64F[0] * stddev.data64F[0];
                 
                 // Limpeza de memória
                 src.delete(); gray.delete(); laplacian.delete(); mean.delete(); stddev.delete();
 
-                // Threshold: Abaixo de 100 geralmente é borrado
-                console.log("Variância da Nitidez:", variance);
-                return variance > 150; 
+                // Threshold: Abaixo de 100 geralmente é borrado. Ajustado para 100 para ser tolerante mas seguro.
+                console.log("Score de Nitidez:", variance);
+                return variance > 100; 
             } catch (err) {
                 console.error(err);
-                return true; // Ignora erro
+                return true; // Em caso de erro interno, aprova
             }
         }
 
@@ -299,10 +451,32 @@
             }
         }
 
-        function goToStep(step) {
-            if(step === 3) {
-                if(!document.getElementById('input-rg_frente').value) return alert("RG Obrigatório.");
+        function toggleRgVerso() {
+            const isNovo = document.getElementById('rgNovo').checked;
+            const versoCard = document.getElementById('container-rg-verso');
+            const labelFrente = document.getElementById('label-rg-frente');
+            
+            if (isNovo) {
+                versoCard.classList.add('hidden');
+                labelFrente.innerText = "RG Aberto / CNH";
+            } else {
+                versoCard.classList.remove('hidden');
+                labelFrente.innerText = "RG (Frente)";
             }
+        }
+
+        function goToStep(step) {
+            // Validações de transição
+            if(step === 2) {
+                const nome = document.querySelector('input[name="nome"]').value;
+                if(!nome) return alert("Preencha o Nome Completo.");
+            }
+            if(step === 3) {
+                // Valida Docs
+                if(!document.getElementById('input-foto_rosto').value) return alert("A Selfie de Segurança é obrigatória.");
+                if(!document.getElementById('input-rg_frente').value) return alert("O Documento é obrigatório.");
+            }
+
             document.getElementById('stepNumber').innerText = step;
             $('.active-step').removeClass('active-step').addClass('hidden-step');
             $('#step' + step).removeClass('hidden-step').addClass('active-step');
@@ -326,12 +500,14 @@
             document.getElementById('cameraModal').style.display = 'flex';
             document.getElementById('cameraInstructions').style.display = 'block';
             document.getElementById('cameraInterface').classList.add('hidden');
+            document.getElementById('blurWarning').classList.add('hidden'); // Reset aviso
         }
 
         async function abrirCameraReal() {
             document.getElementById('cameraInstructions').style.display = 'none';
             document.getElementById('cameraInterface').classList.remove('hidden');
             try {
+                // Se for biometria ou credencial usa user (frontal), senão environment (traseira)
                 const mode = currentDocType.includes('facial') || currentDocType === 'foto_credencial' ? 'user' : 'environment';
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
                 document.getElementById('video').srcObject = stream;
@@ -351,15 +527,23 @@
             canvas.height = video.videoHeight;
             context.drawImage(video, 0, 0);
 
-            // Validação de Nitidez
-            if(currentDocType === 'foto_credencial') {
-                const isSharp = verificarNitidez(canvas);
-                if(!isSharp) {
-                    alert("A imagem está borrada. Por favor, segure firme e tente novamente para garantir a qualidade da credencial.");
-                    return; // Não salva, obriga tentar de novo
-                }
+            // VALIDAÇÃO DE NITIDEZ NO MOMENTO DO CLIQUE
+            const isSharp = verificarNitidez(canvas);
+            
+            if(!isSharp) {
+                // Mostra alerta visual na câmera e não salva
+                const warning = document.getElementById('blurWarning');
+                warning.classList.remove('hidden');
+                
+                // Esconde alerta após 3 segundos
+                setTimeout(() => {
+                    warning.classList.add('hidden');
+                }, 3000);
+                
+                return; // Aborta salvamento
             }
 
+            // Se passou na validação
             const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
             salvarImagem(dataUrl);
         }
@@ -367,29 +551,25 @@
         function salvarImagem(base64) {
             document.getElementById('input-' + currentDocType).value = base64;
             
-            // Atualiza UI
+            // Atualiza UI Específica
             if(currentDocType === 'foto_credencial') {
                 const feedback = document.getElementById('quality-feedback');
                 feedback.classList.remove('hidden', 'text-red-600', 'bg-red-50');
                 feedback.classList.add('text-green-600', 'bg-green-50');
-                feedback.innerHTML = '<i class="fa-solid fa-check-circle"></i> Foto Capturada e Aprovada pelo Sistema!';
+                feedback.innerHTML = '<i class="fa-solid fa-check-circle"></i> Foto Nítida e Aprovada!';
             } else {
                 const status = document.getElementById('status-' + currentDocType);
                 if(status) {
                     status.innerText = "Capturado";
                     status.className = "text-xs font-bold mt-1 text-green-600 status-msg";
+                    status.closest('.doc-card').classList.remove('pending');
                     status.closest('.doc-card').classList.add('completed');
                 }
             }
             fecharCameraModal();
         }
 
-        // --- 4. UPLOADS NORMAIS ---
-        function iniciarUpload(tipo) {
-            currentDocType = tipo;
-            document.getElementById('upload-' + tipo).click();
-        }
-
+        // --- 4. UPLOADS NORMAIS (COM VALIDAÇÃO NO ARQUIVO) ---
         function confirmarUpload(tipo) {
             const el = document.getElementById('status-' + tipo);
             el.innerText = "Anexado";
@@ -397,7 +577,6 @@
             el.closest('.doc-card').classList.add('completed');
         }
 
-        // Upload específico da foto credencial (validação também aqui)
         function processarImagemArquivo(input, tipo) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
@@ -410,11 +589,11 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0);
                         
-                        // Valida Nitidez do Upload
+                        // Valida Nitidez também no Upload da Galeria
                         const isSharp = verificarNitidez(canvas);
                         if(!isSharp) {
-                            alert("A foto enviada parece estar desfocada ou em baixa resolução. Por favor, escolha uma foto melhor.");
-                            input.value = ""; // Limpa
+                            alert("A foto enviada parece estar desfocada. O sistema exige alta nitidez para a credencial. Por favor, escolha outra.");
+                            input.value = ""; // Limpa input
                             return;
                         }
                         
@@ -422,7 +601,7 @@
                         const feedback = document.getElementById('quality-feedback');
                         feedback.classList.remove('hidden');
                         feedback.classList.add('text-green-600', 'bg-green-50');
-                        feedback.innerHTML = '<i class="fa-solid fa-check-circle"></i> Foto carregada e Nítida!';
+                        feedback.innerHTML = '<i class="fa-solid fa-check-circle"></i> Upload Nítido!';
                     }
                     img.src = e.target.result;
                 }
