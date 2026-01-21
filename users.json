@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Administrador",
+      "email": "admin@conadibe.org",
+      "pass": "admin123",
+      "role": "MASTER",
+      "status": "ATIVO"
+    }
+  ]
+}
