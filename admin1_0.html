@@ -226,16 +226,18 @@
             btn.innerText = 'ENVIANDO...'; btn.disabled = true;
 
             try {
+                // 1. Envia solicitação para o Backend
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'recoverPassword', email: email })
                 });
                 const res = await response.json();
                 
+                // 2. Feedback para o usuário
                 if (res.status === 'success') {
-                    alert("✅ Sucesso!\n" + res.message);
+                    alert("✅ E-mail Enviado!\n" + res.message);
                     document.getElementById('modalRecover').style.display = 'none';
-                    document.getElementById('recoverEmail').value = ''; // Limpa campo
+                    document.getElementById('recoverEmail').value = ''; 
                 } else {
                     alert("⚠️ Atenção:\n" + res.message);
                 }
