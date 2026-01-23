@@ -222,6 +222,7 @@
             if(!email) return alert("Digite seu e-mail.");
             
             const btn = document.querySelector('#modalRecover button');
+            const originalText = btn.innerText;
             btn.innerText = 'ENVIANDO...'; btn.disabled = true;
 
             try {
@@ -231,15 +232,20 @@
                 });
                 const res = await response.json();
                 
-                alert(res.message || "Solicitação enviada.");
-                document.getElementById('modalRecover').style.display = 'none';
+                if (res.status === 'success') {
+                    alert("✅ Sucesso!\n" + res.message);
+                    document.getElementById('modalRecover').style.display = 'none';
+                    document.getElementById('recoverEmail').value = ''; // Limpa campo
+                } else {
+                    alert("⚠️ Atenção:\n" + res.message);
+                }
             } catch (e) {
-                alert("Erro ao enviar solicitação.");
+                alert("Erro ao conectar com o servidor.");
+                console.error(e);
             } finally {
-                btn.innerText = 'ENVIAR CÓDIGO'; btn.disabled = false;
+                btn.innerText = originalText; btn.disabled = false;
             }
         }
-
         function iniciarSessao(user) {
             currentUser = user;
             document.getElementById('login-screen').style.display = 'none';
