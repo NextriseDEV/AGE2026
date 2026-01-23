@@ -35,6 +35,9 @@
             position: relative; overflow: hidden; transition: all 0.3s;
         }
         
+        /* Correção de Espelhamento */
+        .mirrored { transform: scaleX(-1); }
+
         /* Status Card */
         .doc-card { transition: all 0.3s; border: 1px solid #e2e8f0; }
         .doc-card.completed { border-color: #10b981; background-color: #f0fdf4; }
@@ -391,18 +394,23 @@
             <video id="video" autoplay playsinline class="absolute min-w-full min-h-full object-cover"></video>
             <div id="scanFrame" class="scanner-frame z-10 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)]"></div>
             
-            <div class="absolute bottom-10 z-20 flex flex-col items-center gap-4">
-                <div id="blurWarning" class="hidden bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm animate-pulse shadow-lg flex items-center gap-2">
+            <div class="absolute bottom-10 z-20 flex flex-col items-center gap-4 w-full px-8">
+                <div id="blurWarning" class="hidden bg-red-600 text-white px-4 py-2 rounded-full font-bold text-sm animate-pulse shadow-lg flex items-center gap-2 mb-2">
                     <i class="fa-solid fa-triangle-exclamation"></i> IMAGEM BORRADA! TENTE NOVAMENTE
                 </div>
                 
-                <div class="flex items-center gap-8">
+                <div id="cameraControls" class="flex justify-between items-center w-full max-w-sm">
                     <button onclick="fecharCameraModal()" class="text-white p-4"><i class="fa-solid fa-xmark text-2xl"></i></button>
                     <button onclick="tirarFoto()" class="w-16 h-16 bg-white rounded-full border-4 border-gray-300 shadow-lg active:scale-95 transition"></button>
-                    <button class="text-white p-4 opacity-0"><i class="fa-solid fa-rotate text-2xl"></i></button>
+                    <button onclick="alternarCamera()" class="text-white p-4"><i class="fa-solid fa-rotate text-2xl"></i></button>
+                </div>
+
+                <div id="previewButtons" class="hidden flex gap-4 w-full max-w-sm">
+                     <button onclick="retirarFoto()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold shadow"><i class="fa-solid fa-rotate-left"></i> Refazer</button>
+                     <button onclick="confirmarFoto()" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold shadow"><i class="fa-solid fa-check"></i> Confirmar</button>
                 </div>
             </div>
-            <canvas id="canvas" class="hidden"></canvas>
+            <canvas id="canvas" class="hidden z-0 absolute top-0 left-0 w-full h-full object-contain bg-black"></canvas>
         </div>
     </div>
 
@@ -433,7 +441,7 @@
                 // Limpeza de memória
                 src.delete(); gray.delete(); laplacian.delete(); mean.delete(); stddev.delete();
 
-                // Threshold: Abaixo de 100 geralmente é borrado. Ajustado para 100 para ser tolerante mas seguro.
+                // Threshold
                 console.log("Score de Nitidez:", variance);
                 return variance > 100; 
             } catch (err) {
@@ -445,8 +453,10 @@
         // --- 2. LÓGICA DO SISTEMA ---
         let currentDocType = '';
         let stream = null;
+        let currentFacingMode = 'environment';
+        let capturedImageBlob = null; // Armazena temporariamente
 
-        // --- MÁSCARAS AJUSTADAS ---
+        // --- MÁSCARAS ---
         $(document).ready(function(){ 
             $('.cpf-mask').mask('000.000.000-00');
             $('.phone-mask').mask('(00) 00000-0000');
@@ -481,13 +491,6 @@
             }
         }
 
-        function updateFileLabel(input, labelId) {
-            if(input.files && input.files[0]) {
-                document.getElementById(labelId).innerText = input.files[0].name;
-                document.getElementById(labelId).classList.add('text-green-600', 'font-bold');
-            }
-        }
-
         function buscarCep() {
             const cep = document.getElementById('cep').value.replace(/\D/g, '');
             if (cep.length === 8) {
@@ -512,7 +515,7 @@
         }
 
         function goToStep(step) {
-            // Validações de transição da Etapa 1 para 2 (Obrigatoriedades)
+            // Validações
             if(step === 2) {
                 const inputsObrigatorios = [
                     'nome', 'cargo', 'nascimento', 'sexo', 'naturalidade',
@@ -535,7 +538,6 @@
                 if(erro) return alert("Por favor, preencha todos os campos obrigatórios marcados.");
             }
             
-            // Validações de transição da Etapa 2 para 3 (Biometria)
             if(step === 3) {
                 if(!document.getElementById('input-biometria_facial').value) return alert("A Selfie de Segurança é obrigatória.");
                 if(!document.getElementById('input-rg_frente').value) return alert("O Documento é obrigatório.");
@@ -561,21 +563,43 @@
                 frame.style.borderRadius = '12px';
             }
 
+            // Define câmera padrão
+            if(tipo === 'biometria_facial' || tipo === 'foto_credencial') currentFacingMode = 'user';
+            else currentFacingMode = 'environment';
+
             document.getElementById('cameraModal').style.display = 'flex';
             document.getElementById('cameraInstructions').style.display = 'block';
             document.getElementById('cameraInterface').classList.add('hidden');
-            document.getElementById('blurWarning').classList.add('hidden'); // Reset aviso
+            document.getElementById('blurWarning').classList.add('hidden'); 
+            
+            // Reseta UI de Preview
+            retirarFoto(); 
         }
 
         async function abrirCameraReal() {
             document.getElementById('cameraInstructions').style.display = 'none';
             document.getElementById('cameraInterface').classList.remove('hidden');
+            
+            const videoEl = document.getElementById('video');
+            
+            // Aplica espelhamento visual SE for câmera frontal
+            if(currentFacingMode === 'user') {
+                videoEl.classList.add('mirrored');
+            } else {
+                videoEl.classList.remove('mirrored');
+            }
+
             try {
-                // Se for biometria ou credencial usa user (frontal), senão environment (traseira)
-                const mode = currentDocType.includes('facial') || currentDocType === 'foto_credencial' ? 'user' : 'environment';
-                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: mode } });
-                document.getElementById('video').srcObject = stream;
+                if(stream) stream.getTracks().forEach(t => t.stop());
+                
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
+                videoEl.srcObject = stream;
             } catch (err) { alert("Erro câmera: " + err.message); fecharCameraModal(); }
+        }
+
+        function alternarCamera() {
+            currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+            abrirCameraReal();
         }
 
         function fecharCameraModal() {
@@ -589,33 +613,57 @@
             const context = canvas.getContext('2d');
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
+            
+            // Desenha no canvas
+            // Se for selfie (user), precisamos espelhar o desenho para corresponder ao preview visual
+            if(currentFacingMode === 'user') {
+                 context.translate(canvas.width, 0);
+                 context.scale(-1, 1);
+            }
+            
             context.drawImage(video, 0, 0);
 
-            // VALIDAÇÃO DE NITIDEZ NO MOMENTO DO CLIQUE
-            const isSharp = verificarNitidez(canvas);
-            
-            if(!isSharp) {
-                // Mostra alerta visual na câmera e não salva
-                const warning = document.getElementById('blurWarning');
-                warning.classList.remove('hidden');
-                
-                // Esconde alerta após 3 segundos
-                setTimeout(() => {
-                    warning.classList.add('hidden');
-                }, 3000);
-                
-                return; // Aborta salvamento
+            // VALIDAÇÃO DE NITIDEZ (Biometria e Credencial)
+            // Agora valida também biometria_facial conforme solicitado
+            if(currentDocType === 'foto_credencial' || currentDocType === 'biometria_facial') {
+                const isSharp = verificarNitidez(canvas);
+                if(!isSharp) {
+                    const warning = document.getElementById('blurWarning');
+                    warning.classList.remove('hidden');
+                    setTimeout(() => warning.classList.add('hidden'), 3000);
+                    return; 
+                }
             }
 
-            // Se passou na validação
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            salvarImagem(dataUrl);
+            // Se OK, congela a imagem para preview
+            capturedImageBlob = canvas.toDataURL('image/jpeg', 0.9);
+            
+            // UI de Preview
+            canvas.classList.remove('hidden'); // Mostra o canvas estático
+            document.getElementById('cameraControls').classList.add('hidden');
+            document.getElementById('previewButtons').classList.remove('hidden');
+            document.getElementById('previewButtons').classList.add('flex');
+        }
+
+        function retirarFoto() {
+            // Volta para o vídeo ao vivo
+            document.getElementById('canvas').classList.add('hidden');
+            document.getElementById('cameraControls').classList.remove('hidden');
+            document.getElementById('previewButtons').classList.add('hidden');
+            document.getElementById('previewButtons').classList.remove('flex');
+            capturedImageBlob = null;
+        }
+
+        function confirmarFoto() {
+            if(capturedImageBlob) {
+                salvarImagem(capturedImageBlob);
+            }
         }
 
         function salvarImagem(base64) {
             document.getElementById('input-' + currentDocType).value = base64;
             
-            // Atualiza UI Específica
+            // Atualiza UI
             if(currentDocType === 'foto_credencial') {
                 const feedback = document.getElementById('quality-feedback');
                 feedback.classList.remove('hidden', 'text-red-600', 'bg-red-50');
@@ -633,7 +681,7 @@
             fecharCameraModal();
         }
 
-        // --- 4. UPLOADS NORMAIS (COM VALIDAÇÃO NO ARQUIVO) ---
+        // --- 4. UPLOADS NORMAIS ---
         function confirmarUpload(tipo) {
             const el = document.getElementById('status-' + tipo);
             el.innerText = "Anexado";
@@ -657,7 +705,7 @@
                         const isSharp = verificarNitidez(canvas);
                         if(!isSharp) {
                             alert("A foto enviada parece estar desfocada. O sistema exige alta nitidez para a credencial. Por favor, escolha outra.");
-                            input.value = ""; // Limpa input
+                            input.value = ""; 
                             return;
                         }
                         
