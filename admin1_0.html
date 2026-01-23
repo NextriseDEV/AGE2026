@@ -14,7 +14,6 @@
         .sidebar { width: 250px; background: #0d2d5a; min-height: 100vh; color: white; position: fixed; transition: transform 0.3s ease-in-out; z-index: 40; }
         .content { margin-left: 250px; padding: 2rem; transition: margin-left 0.3s ease-in-out; }
         
-        /* Mobile: Esconde Sidebar e ajusta content */
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.active { transform: translateX(0); }
@@ -26,14 +25,12 @@
         /* Login Screen */
         #login-screen { position: fixed; inset: 0; z-index: 100; background: #0d2d5a; display: flex; align-items: center; justify-content: center; }
 
-        /* Modal de Análise */
+        /* Modal */
         .modal-analise { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 50; justify-content: center; items-center; padding: 10px; }
         .doc-preview { height: 100%; min-height: 400px; background: #1f2937; display: flex; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; position: relative; }
         
-        /* Badges */
-        .badge-pendente { background: #fef3c7; color: #d97706; }
-        .ai-score-high { color: #16a34a; font-weight: bold; }
-        .ai-score-low { color: #dc2626; font-weight: bold; }
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -43,21 +40,12 @@
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" class="h-16 mx-auto mb-6">
             <h2 class="text-xl font-bold text-blue-900 mb-1">Acesso Restrito</h2>
             <p class="text-sm text-gray-500 mb-6">Secretaria Geral CONADIBE</p>
-            
             <form onsubmit="realizarLogin(event)" class="space-y-4 text-left">
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">E-mail</label>
-                    <input type="email" id="emailLogin" class="w-full p-3 border rounded-lg focus:border-blue-900 outline-none" required>
-                </div>
-                <div>
-                    <label class="text-xs font-bold text-gray-500 uppercase">Senha</label>
-                    <input type="password" id="senhaLogin" class="w-full p-3 border rounded-lg focus:border-blue-900 outline-none" required>
-                </div>
-                <button type="submit" class="w-full bg-blue-900 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition">
-                    ENTRAR NO SISTEMA
-                </button>
+                <input type="email" id="emailLogin" class="w-full p-3 border rounded-lg" placeholder="E-mail" required>
+                <input type="password" id="senhaLogin" class="w-full p-3 border rounded-lg" placeholder="Senha" required>
+                <button type="submit" class="w-full bg-blue-900 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition">ENTRAR</button>
             </form>
-            <p id="loginMsg" class="mt-4 text-xs text-red-500 font-bold h-4"></p>
+            <p id="loginMsg" class="mt-4 text-xs text-red-500 font-bold h-4 text-center"></p>
         </div>
     </div>
 
@@ -70,349 +58,357 @@
             <p class="text-xs text-blue-300">CONADIBE v2.0</p>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="#" onclick="renderTable('pendentes')" class="block p-3 rounded bg-blue-900/50 border-l-4 border-yellow-500 text-white transition"><i class="fa-solid fa-list-check w-6"></i> Pendentes <span id="count-pending" class="float-right bg-red-600 text-xs px-2 py-1 rounded-full">--</span></a>
-            <a href="#" onclick="renderTable('aprovados')" class="block p-3 rounded hover:bg-blue-800 text-gray-300 transition"><i class="fa-solid fa-check-double w-6"></i> Aprovados</a>
-            <a href="#" class="block p-3 rounded hover:bg-blue-800 text-gray-300 transition"><i class="fa-solid fa-chair w-6"></i> Mapa Assentos</a>
-            <a href="#" class="block p-3 rounded hover:bg-blue-800 text-gray-300 transition"><i class="fa-solid fa-users w-6"></i> Usuários</a>
+            <a href="#" onclick="switchView('dashboard')" class="block p-3 rounded bg-blue-900/50 border-l-4 border-yellow-500 text-white hover:bg-blue-800"><i class="fa-solid fa-list-check w-6"></i> Pendentes <span id="count-pending" class="float-right bg-red-600 text-xs px-2 py-1 rounded-full">--</span></a>
+            <a href="#" onclick="switchView('aprovados')" class="block p-3 rounded text-gray-300 hover:bg-blue-800"><i class="fa-solid fa-check-double w-6"></i> Aprovados</a>
+            <a href="#" class="block p-3 rounded text-gray-300 hover:bg-blue-800"><i class="fa-solid fa-chair w-6"></i> Mapa Assentos</a>
+            <a href="#" onclick="switchView('users')" id="menuUsersBtn" class="hidden p-3 rounded text-gray-300 hover:bg-blue-800 border-t border-blue-800 mt-4"><i class="fa-solid fa-users-gear w-6"></i> Usuários</a>
         </nav>
         <div class="p-4 border-t border-blue-800">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-blue-900 font-bold">A</div>
-                <div>
-                    <p class="text-sm font-bold" id="userNameDisplay">Analista</p>
-                    <button onclick="logout()" class="text-xs text-red-300 hover:text-white">Sair</button>
-                </div>
+                <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-blue-900 font-bold" id="userInitial">A</div>
+                <div><p class="text-sm font-bold" id="userNameDisplay">Analista</p><button onclick="logout()" class="text-xs text-red-300 hover:text-white">Sair</button></div>
             </div>
         </div>
     </div>
 
     <div class="content">
-        
         <div class="md:hidden flex justify-between items-center mb-6">
             <button onclick="toggleMenu()" class="text-blue-900 p-2"><i class="fa-solid fa-bars text-2xl"></i></button>
             <span class="font-bold text-blue-900">Painel Gestor</span>
-            <div class="w-8"></div> </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Aguardando</p>
-                <h3 class="text-3xl font-bold text-gray-800" id="stat-pending">--</h3>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Total Inscritos</p>
-                <h3 class="text-3xl font-bold text-gray-800" id="stat-total">--</h3>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Assentos Ocupados</p>
-                <h3 class="text-3xl font-bold text-gray-800" id="stat-seats">890</h3>
-            </div>
-             <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Arrecadação (Est.)</p>
-                <h3 class="text-3xl font-bold text-gray-800">R$ 45k</h3>
-            </div>
+            <div class="w-8"></div>
         </div>
 
-        <div class="bg-white p-4 rounded-t-xl border-b flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm">
-            <h2 class="font-bold text-gray-700 flex items-center gap-2"><i class="fa-solid fa-table"></i> <span id="tableTitle">Fila de Aprovação</span></h2>
-            <div class="flex gap-2 w-full md:w-auto">
-                <div class="relative w-full md:w-64">
-                    <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
-                    <input type="text" id="searchInput" placeholder="Buscar por nome, CPF..." class="border rounded-lg pl-10 pr-4 py-2 text-sm w-full focus:outline-none focus:border-blue-500" onkeyup="filterTable()">
+        <div id="view-dashboard">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500"><p class="text-gray-500 text-xs uppercase font-bold">Aguardando</p><h3 class="text-3xl font-bold text-gray-800" id="stat-pending">--</h3></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500"><p class="text-gray-500 text-xs uppercase font-bold">Total Inscritos</p><h3 class="text-3xl font-bold text-gray-800" id="stat-total">--</h3></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500"><p class="text-gray-500 text-xs uppercase font-bold">Assentos Ocupados</p><h3 class="text-3xl font-bold text-gray-800">890</h3></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500"><p class="text-gray-500 text-xs uppercase font-bold">Arrecadação</p><h3 class="text-3xl font-bold text-gray-800">R$ --k</h3></div>
+            </div>
+
+            <div class="bg-white p-4 rounded-t-xl border-b flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm">
+                <h2 class="font-bold text-gray-700 flex items-center gap-2"><i class="fa-solid fa-table"></i> <span id="tableTitle">Fila de Aprovação</span></h2>
+                <div class="flex gap-2 w-full md:w-auto">
+                    <div class="relative w-full md:w-64">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar..." class="border rounded-lg pl-10 pr-4 py-2 text-sm w-full focus:outline-none focus:border-blue-500" onkeyup="filterTable()">
+                    </div>
+                    <button onclick="carregarDados(true)" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 flex items-center gap-2 shadow-sm border border-blue-200 transition">
+                        <i class="fa-solid fa-rotate-right"></i> Atualizar
+                    </button>
                 </div>
-                <button onclick="carregarDados()" class="bg-gray-100 p-2 rounded-lg text-gray-600 hover:bg-gray-200" title="Recarregar Dados"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+
+            <div class="bg-white rounded-b-xl shadow-sm overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                        <tr><th class="p-4">Data</th><th class="p-4">Nome / Cargo</th><th class="p-4">Categoria</th><th class="p-4">Validação IA</th><th class="p-4 text-right">Ação</th></tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm divide-y divide-gray-100">
+                        <tr><td colspan="5" class="p-8 text-center text-gray-400">Carregando dados...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="bg-white rounded-b-xl shadow-sm overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[800px]">
-                <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-                    <tr>
-                        <th class="p-4">Data</th>
-                        <th class="p-4">Nome / Cargo</th>
-                        <th class="p-4">Categoria</th>
-                        <th class="p-4">Validação IA</th>
-                        <th class="p-4 text-right">Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body" class="text-sm divide-y divide-gray-100">
-                    <tr><td colspan="5" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Carregando base de dados...</td></tr>
-                </tbody>
-            </table>
-        </div>
+        <div id="view-users" class="hidden">
+            </div>
     </div>
 
-    <div id="modalAnalyze" class="modal-analise" style="display:none;">
+    <div id="modalAnalyze" class="modal-analise">
         <div class="bg-white w-full max-w-7xl h-[95vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative">
-            
             <div class="bg-blue-900 text-white p-4 flex justify-between items-center">
-                <div>
-                    <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart"></i> Análise de Cadastro <span id="modalId" class="bg-blue-800 px-2 rounded text-xs">#000</span></h3>
-                    <p class="text-xs text-blue-200" id="modalSubtitle">Carregando...</p>
-                </div>
+                <div><h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart"></i> Análise <span id="modalId" class="bg-blue-800 px-2 rounded text-xs">#000</span></h3><p class="text-xs text-blue-200" id="modalSubtitle">...</p></div>
                 <button onclick="closeModal()" class="text-gray-300 hover:text-white p-2"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-
             <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
-                
                 <div class="w-full md:w-1/3 p-6 overflow-y-auto bg-gray-50 border-r custom-scroll">
                     <h4 class="font-bold text-gray-700 mb-4 border-b pb-2">Dados Cadastrais</h4>
-                    
-                    <div class="space-y-4 text-sm" id="modalDataContent">
-                        </div>
-                    
+                    <div class="space-y-4 text-sm" id="modalDataContent"></div>
                     <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
                         <h5 class="text-xs font-bold text-blue-800 mb-3 flex items-center gap-2"><i class="fa-solid fa-robot"></i> Análise Automática (IA)</h5>
-                        
                         <div class="space-y-2 text-xs">
-                            <div class="flex justify-between items-center bg-white p-2 rounded border">
-                                <span>CPF na Receita:</span> <span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Regular</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-white p-2 rounded border">
-                                <span>Antecedentes:</span> <span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Nada Consta</span>
-                            </div>
-                            <div class="flex justify-between items-center bg-white p-2 rounded border">
-                                <span>Biometria Facial:</span> <span class="text-green-600 font-bold">98% Match (RG)</span>
-                            </div>
+                            <div class="flex justify-between items-center bg-white p-2 rounded border"><span>CPF na Receita:</span> <span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Regular</span></div>
+                            <div class="flex justify-between items-center bg-white p-2 rounded border"><span>Antecedentes:</span> <span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Nada Consta</span></div>
                         </div>
                     </div>
                 </div>
-
                 <div class="w-full md:w-2/3 p-4 bg-gray-900 flex flex-col">
-                    
-                    <div class="flex gap-2 mb-4 overflow-x-auto pb-2" id="docTabs">
-                        </div>
-
+                    <div class="flex gap-2 mb-4 overflow-x-auto pb-2" id="docTabs"></div>
                     <div class="doc-preview flex-1 border border-gray-700 relative group">
                         <img id="docImage" src="" class="max-w-full max-h-full object-contain">
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition cursor-zoom-in pointer-events-none">
-                            <span class="text-white font-bold"><i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar</span>
-                        </div>
                     </div>
-                    <p class="text-center text-gray-500 text-xs mt-2"><i class="fa-solid fa-mouse"></i> Use o scroll para zoom (em breve)</p>
-
                 </div>
             </div>
-
             <div class="p-4 border-t bg-gray-50 flex justify-between items-center">
-                <button onclick="rejeitarCadastro()" class="text-red-600 font-bold text-sm hover:underline px-4">Rejeitar (Motivo)</button>
+                <button onclick="rejeitarCadastro()" class="text-red-600 font-bold text-sm hover:underline px-4">Rejeitar</button>
                 <div class="flex gap-3">
                     <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded font-bold hover:bg-gray-300">Cancelar</button>
-                    <button onclick="aprovarCadastro()" id="btnAprovar" class="px-6 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
-                        <i class="fa-solid fa-check-circle"></i> APROVAR & LIBERAR TOKEN
-                    </button>
+                    <button onclick="aprovarCadastro()" id="btnAprovar" class="px-6 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 shadow-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> APROVAR</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- 1. VARIÁVEIS GLOBAIS (CACHE) ---
-        let dbCache = []; // Armazena todos os registros
+        // CONFIGURAÇÃO
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxFrFjamzbq5ogR5xCfW3MaK1kNfB2F2Wc7dvlvBL2wfzeXvC52eAMHvUSHczGZ_-_imQ/exec'; // COLOQUE A URL DO DEPLOY AQUI
+        
+        let dbCache = []; 
         let currentModalId = null;
+        let currentUser = null;
 
-        // --- 2. SISTEMA DE LOGIN (Simulado com Github) ---
+        // --- AUTH ---
         async function realizarLogin(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Validando...';
+            btn.disabled = true;
+
             const email = document.getElementById('emailLogin').value;
             const senha = document.getElementById('senhaLogin').value;
-            const msg = document.getElementById('loginMsg');
 
-            // Simulação de Request Auth
-            if (email === "admin@conadibe.org" && senha === "admin123") {
-                document.getElementById('login-screen').style.display = 'none';
-                localStorage.setItem('conadibe_auth', 'true');
-                carregarDados(); // Inicia carga de dados
-            } else {
-                msg.innerText = "Credenciais inválidas.";
+            try {
+                // Chama o Backend para validar senha (Seguro)
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', email: email, senha: senha })
+                });
+                const res = await response.json();
+
+                if (res.status === 'success') {
+                    localStorage.setItem('conadibe_user', JSON.stringify(res.user));
+                    iniciarSessao(res.user);
+                } else {
+                    document.getElementById('loginMsg').innerText = res.message;
+                    btn.innerHTML = 'ENTRAR NO SISTEMA';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert("Erro de conexão: " + err);
+                btn.disabled = false;
             }
+        }
+
+        function iniciarSessao(user) {
+            currentUser = user;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('userNameDisplay').innerText = user.name.split(' ')[0];
+            document.getElementById('userInitial').innerText = user.name.charAt(0).toUpperCase();
+            
+            const menuUsers = document.getElementById('menuUsersBtn');
+            if (user.role === 'MASTER') menuUsers.classList.remove('hidden');
+            else menuUsers.classList.add('hidden');
+
+            carregarDados();
         }
 
         function logout() {
-            localStorage.removeItem('conadibe_auth');
+            localStorage.removeItem('conadibe_user');
             location.reload();
         }
 
-        // --- 3. CARREGAMENTO INTELIGENTE (CACHE) ---
-        async function carregarDados() {
-            // URL da sua API ou JSON no Github (Exemplo Mock)
-            // Substitua por: const response = await fetch('https://raw.githubusercontent.com/SEU_USER/SEU_REPO/main/db_mock.json');
-            
-            // MOCK DE DADOS PARA TESTE
-            const mockData = [
-                {
-                    id: "MIN-8392", data: "2026-01-20 14:30", nome: "Stanrley Roger", cargo: "Presbítero", tipo: "Consagração", status: "PENDENTE",
-                    cpf: "357.745.158-00", rg: "41.947.104-2", igreja: "ADSA Jd. Cipó",
-                    docs: {
-                        rosto: "https://nextrisedev.github.io/AGE2026/ASSETS/FOTOCRED1.png",
-                        rg_frente: "https://via.placeholder.com/600x400?text=RG+Frente",
-                        teologia: "https://via.placeholder.com/600x800?text=Certificado"
-                    }
-                },
-                {
-                    id: "PUB-1203", data: "2026-01-20 15:10", nome: "Julia Melo", cargo: "Membro", tipo: "Público Geral", status: "PENDENTE",
-                    cpf: "423.606.008-69", rg: "50.991.561-9", igreja: "ADSA Sede",
-                    docs: {
-                        rosto: "https://via.placeholder.com/300?text=Foto",
-                        comprovante: "https://via.placeholder.com/600?text=Comprovante+Pix"
-                    }
-                }
-            ];
-
-            dbCache = mockData; // Salva em memória
-            atualizarStats();
-            renderTable('pendentes');
-        }
-
-        // --- 4. RENDERIZAÇÃO DA TABELA ---
-        function renderTable(filtroStatus) {
+        // --- DADOS E CACHE ---
+        async function carregarDados(forceUpdate = false) {
             const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-
-            let dadosFiltrados = dbCache;
-            if (filtroStatus === 'pendentes') {
-                dadosFiltrados = dbCache.filter(item => item.status === 'PENDENTE');
-                document.getElementById('tableTitle').innerText = "Fila de Aprovação (Pendentes)";
-            } else if (filtroStatus === 'aprovados') {
-                dadosFiltrados = dbCache.filter(item => item.status === 'APROVADO');
-                document.getElementById('tableTitle').innerText = "Histórico de Aprovados";
+            
+            // 1. Tenta Cache Local
+            const localData = sessionStorage.getItem('conadibe_db_cache');
+            if (localData && !forceUpdate) {
+                dbCache = JSON.parse(localData);
+                processarDadosParaTabela(dbCache);
+                return;
             }
 
-            if (dadosFiltrados.length === 0) {
+            // 2. Busca no Servidor (Traffic Otimizado pelo CacheService do Google)
+            tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center"><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando dados...</td></tr>';
+            
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getDataAdmin`);
+                const data = await response.json();
+                
+                sessionStorage.setItem('conadibe_db_cache', JSON.stringify(data)); // Atualiza Local
+                dbCache = data;
+                processarDadosParaTabela(data);
+                
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Erro ao carregar dados.</td></tr>';
+            }
+        }
+
+        function processarDadosParaTabela(dados) {
+            atualizarStats(dados);
+            const pendentes = dados.filter(i => i.status === 'EM ANÁLISE' || i.status === 'PENDENTE');
+            renderTableRows(pendentes);
+        }
+
+        function renderTableRows(lista) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            if(lista.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Nenhum registro encontrado.</td></tr>';
                 return;
             }
 
-            dadosFiltrados.forEach(item => {
-                const row = `
+            lista.forEach(item => {
+                tbody.innerHTML += `
                     <tr class="hover:bg-blue-50 transition border-b border-gray-100">
-                        <td class="p-4 text-gray-500 whitespace-nowrap">${item.data}</td>
+                        <td class="p-4 text-gray-500 whitespace-nowrap text-xs">${item.data}</td>
                         <td class="p-4">
                             <p class="font-bold text-gray-800">${item.nome}</p>
-                            <span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase font-bold">${item.cargo}</span>
+                            <span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase font-bold">${item.cargo || '-'}</span>
                         </td>
-                        <td class="p-4 text-gray-600">${item.tipo}</td>
+                        <td class="p-4 text-gray-600 text-sm">${item.tipo || 'Cadastro'}</td>
                         <td class="p-4">
                             <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full ${item.status === 'PENDENTE' ? 'bg-yellow-500' : 'bg-green-500'}"></span>
-                                <span class="text-xs font-bold ${item.status === 'PENDENTE' ? 'text-green-600' : 'text-gray-500'}">
-                                    ${item.status === 'PENDENTE' ? '98% Match (IA)' : 'Processado'}
-                                </span>
+                                <span class="w-2 h-2 rounded-full ${item.status.includes('PENDENTE') || item.status.includes('ANÁLISE') ? 'bg-yellow-500' : 'bg-green-500'}"></span>
+                                <span class="text-xs font-bold text-gray-600">${item.status}</span>
                             </div>
                         </td>
                         <td class="p-4 text-right">
-                            <button onclick="openAnalyzeModal('${item.id}')" class="bg-blue-900 text-white px-4 py-2 rounded shadow hover:bg-blue-800 text-xs font-bold transition transform hover:scale-105">
-                                <i class="fa-solid fa-eye mr-1"></i> ANALISAR
-                            </button>
+                            <button onclick="openAnalyzeModal('${item.id}')" class="bg-blue-900 text-white px-3 py-1 rounded shadow hover:bg-blue-800 text-xs font-bold">ANALISAR</button>
                         </td>
                     </tr>
                 `;
-                tbody.innerHTML += row;
             });
         }
 
-        // Filtro de Busca Local (Instantâneo)
-        function filterTable() {
-            const termo = document.getElementById('searchInput').value.toLowerCase();
-            const tbody = document.getElementById('table-body');
-            const rows = tbody.getElementsByTagName('tr');
+        function atualizarStats(dados) {
+            document.getElementById('stat-pending').innerText = dados.filter(i => i.status.includes('ANÁLISE') || i.status.includes('PENDENTE')).length;
+            document.getElementById('count-pending').innerText = dados.filter(i => i.status.includes('ANÁLISE') || i.status.includes('PENDENTE')).length;
+            document.getElementById('stat-total').innerText = dados.length;
+        }
 
-            for (let row of rows) {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(termo) ? '' : 'none';
+        // --- GESTÃO USUÁRIOS (MASTER) ---
+        function switchView(viewName) {
+            if (viewName === 'users') {
+                document.getElementById('view-dashboard').classList.add('hidden');
+                document.getElementById('view-users').classList.remove('hidden');
+                renderUserManagement();
+            } else {
+                document.getElementById('view-users').classList.add('hidden');
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                if(viewName === 'aprovados') {
+                    document.getElementById('tableTitle').innerText = "Histórico de Aprovados";
+                    const aprovados = dbCache.filter(i => i.status === 'APROVADO');
+                    renderTableRows(aprovados);
+                } else if(viewName === 'dashboard') {
+                    document.getElementById('tableTitle').innerText = "Fila de Aprovação";
+                    processarDadosParaTabela(dbCache);
+                }
             }
+            toggleMenu();
         }
 
-        function atualizarStats() {
-            const pendentes = dbCache.filter(i => i.status === 'PENDENTE').length;
-            document.getElementById('stat-pending').innerText = pendentes;
-            document.getElementById('count-pending').innerText = pendentes;
-            document.getElementById('stat-total').innerText = dbCache.length;
+        async function renderUserManagement() {
+            const container = document.getElementById('view-users');
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-800">Gestão de Acesso</h2>
+                    <button onclick="document.getElementById('modalNewUser').style.display='flex'" class="bg-blue-900 text-white px-4 py-2 rounded font-bold hover:bg-blue-800"><i class="fa-solid fa-plus"></i> Novo</button>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-4" id="usersListContainer">Carregando...</div>
+                
+                <div id="modalNewUser" class="modal-analise">
+                    <div class="bg-white rounded-xl p-6 w-full max-w-md relative">
+                        <button onclick="document.getElementById('modalNewUser').style.display='none'" class="absolute top-4 right-4"><i class="fa-solid fa-xmark"></i></button>
+                        <h3 class="font-bold text-lg mb-4">Novo Usuário</h3>
+                        <form onsubmit="salvarUsuario(event)" class="space-y-3">
+                            <input id="newNome" class="w-full border p-2 rounded" placeholder="Nome" required>
+                            <input id="newEmail" class="w-full border p-2 rounded" placeholder="E-mail" required>
+                            <input id="newPass" class="w-full border p-2 rounded" placeholder="Senha" required>
+                            <select id="newRole" class="w-full border p-2 rounded bg-white"><option value="COORDENADOR">Coordenador</option><option value="MASTER">Master</option></select>
+                            <button type="submit" class="w-full bg-green-600 text-white p-2 rounded font-bold">CRIAR</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            // Carrega lista
+            const res = await fetch(`${SCRIPT_URL}?action=getUsers`);
+            const users = await res.json();
+            
+            let html = '<table class="w-full text-left text-sm"><thead><tr class="text-gray-500 border-b"><th>Nome</th><th>E-mail</th><th>Função</th><th>Status</th></tr></thead><tbody>';
+            users.forEach(u => {
+                html += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-bold">${u.name}</td><td class="p-3 text-gray-500">${u.email}</td><td class="p-3"><span class="bg-blue-100 text-blue-800 px-2 rounded text-xs">${u.role}</span></td><td class="p-3 text-green-600">${u.status}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('usersListContainer').innerHTML = html;
         }
 
-        // --- 5. MODAL DE ANÁLISE ---
+        async function salvarUsuario(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Salvando...'; btn.disabled = true;
+            
+            const payload = {
+                action: 'createUser',
+                newUserName: document.getElementById('newNome').value,
+                newUserEmail: document.getElementById('newEmail').value,
+                newUserPass: document.getElementById('newPass').value,
+                newUserRole: document.getElementById('newRole').value
+            };
+
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            
+            alert(data.message);
+            if(data.status === 'success') {
+                document.getElementById('modalNewUser').style.display='none';
+                renderUserManagement();
+            }
+            btn.innerText = 'CRIAR'; btn.disabled = false;
+        }
+
+        // --- MODAL DE ANÁLISE ---
         function openAnalyzeModal(id) {
             const registro = dbCache.find(i => i.id === id);
             if (!registro) return;
-
             currentModalId = id;
             document.getElementById('modalId').innerText = "#" + id;
-            document.getElementById('modalSubtitle').innerText = `${registro.nome} - ${registro.cargo}`;
-
-            // Preenche Dados (Esquerda)
-            const htmlDados = `
-                <div><span class="block text-xs text-gray-500 uppercase">Nome</span><div class="font-bold p-2 bg-white border rounded">${registro.nome}</div></div>
-                <div class="grid grid-cols-2 gap-2">
-                    <div><span class="block text-xs text-gray-500 uppercase">CPF</span><div class="font-bold p-2 bg-white border rounded">${registro.cpf}</div></div>
-                    <div><span class="block text-xs text-gray-500 uppercase">RG</span><div class="font-bold p-2 bg-white border rounded">${registro.rg}</div></div>
-                </div>
-                <div><span class="block text-xs text-gray-500 uppercase">Igreja</span><div class="font-bold p-2 bg-white border rounded">${registro.igreja}</div></div>
-            `;
-            document.getElementById('modalDataContent').innerHTML = htmlDados;
-
-            // Preenche Tabs de Documentos (Direita)
-            const tabsContainer = document.getElementById('docTabs');
-            tabsContainer.innerHTML = '';
-            const docKeys = Object.keys(registro.docs);
+            document.getElementById('modalSubtitle').innerText = registro.nome;
             
-            docKeys.forEach((key, index) => {
-                const btn = document.createElement('button');
-                btn.className = `px-4 py-2 rounded text-sm font-bold whitespace-nowrap transition ${index === 0 ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
-                btn.innerText = key.replace('_', ' ').toUpperCase();
-                btn.onclick = () => {
-                    // Muda imagem
-                    document.getElementById('docImage').src = registro.docs[key];
-                    // Atualiza estilo tabs
-                    Array.from(tabsContainer.children).forEach(b => b.className = 'px-4 py-2 bg-gray-700 text-gray-300 rounded text-sm hover:bg-gray-600 whitespace-nowrap transition');
-                    btn.className = 'px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold whitespace-nowrap transition';
-                };
-                tabsContainer.appendChild(btn);
-            });
+            // Renderiza Dados
+            let html = `<div class="grid gap-2 text-xs">`;
+            for (const [key, value] of Object.entries(registro)) {
+                if(key !== 'docs' && key !== 'id') html += `<div class="border-b pb-1"><span class="text-gray-500 uppercase">${key}:</span> <span class="font-bold">${value}</span></div>`;
+            }
+            html += `</div>`;
+            document.getElementById('modalDataContent').innerHTML = html;
 
-            // Carrega primeira imagem
-            if (docKeys.length > 0) document.getElementById('docImage').src = registro.docs[docKeys[0]];
-
+            // Renderiza Docs
+            const tabs = document.getElementById('docTabs');
+            tabs.innerHTML = '';
+            // Exemplo de como iterar se vier do backend corretamente mapeado
+            if(registro.docs) {
+                Object.entries(registro.docs).forEach(([k, v], i) => {
+                    const btn = document.createElement('button');
+                    btn.className = "px-3 py-1 bg-gray-700 text-white rounded text-xs hover:bg-blue-600 whitespace-nowrap";
+                    btn.innerText = k;
+                    btn.onclick = () => document.getElementById('docImage').src = v;
+                    tabs.appendChild(btn);
+                    if(i===0) document.getElementById('docImage').src = v;
+                });
+            }
+            
             document.getElementById('modalAnalyze').style.display = 'flex';
         }
 
-        function closeModal() {
-            document.getElementById('modalAnalyze').style.display = 'none';
+        function closeModal() { document.getElementById('modalAnalyze').style.display = 'none'; }
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlayMenu').classList.toggle('active'); }
+        function filterTable() { 
+            const termo = document.getElementById('searchInput').value.toLowerCase();
+            const filtrados = dbCache.filter(i => JSON.stringify(i).toLowerCase().includes(termo));
+            renderTableRows(filtrados);
         }
 
-        // Menu Mobile Toggle
-        function toggleMenu() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlayMenu').classList.toggle('active');
-        }
-
-        function aprovarCadastro() {
-            const btn = document.getElementById('btnAprovar');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
-            btn.disabled = true;
-
-            // Simula delay de rede
-            setTimeout(() => {
-                // Atualiza localmente
-                const index = dbCache.findIndex(i => i.id === currentModalId);
-                if (index !== -1) dbCache[index].status = 'APROVADO';
-                
-                alert(`✅ Cadastro ${currentModalId} Aprovado!\nE-mail com Token enviado para o usuário.`);
-                
-                closeModal();
-                atualizarStats();
-                renderTable('pendentes');
-                
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }, 1500);
-        }
-
-        // Check Auth no Load
+        // Init
         window.onload = function() {
-            if (localStorage.getItem('conadibe_auth')) {
-                document.getElementById('login-screen').style.display = 'none';
-                carregarDados();
-            }
+            const stored = localStorage.getItem('conadibe_user');
+            if(stored) iniciarSessao(JSON.parse(stored));
+            else document.getElementById('login-screen').style.display = 'flex';
         };
     </script>
 </body>
