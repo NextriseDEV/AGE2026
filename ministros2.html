@@ -35,7 +35,7 @@
             position: relative; overflow: hidden; transition: all 0.3s;
         }
         
-        /* Correção de Espelhamento */
+        /* Correção de Espelhamento (Apenas visual para câmera frontal) */
         .mirrored { transform: scaleX(-1); }
 
         /* Status Card */
@@ -382,6 +382,35 @@
         </form>
     </div>
 
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/90 z-[200] hidden flex-col items-center justify-center text-center">
+        <div class="w-16 h-16 border-4 border-blue-200 border-t-gold-500 rounded-full animate-spin mb-4" style="border-top-color: #d4a017;"></div>
+        <h3 class="text-white font-bold text-xl">Processando Inscrição...</h3>
+        <p class="text-gray-400 text-sm mt-2">Enviando documentos e biometria.<br>Isso pode levar alguns segundos.</p>
+    </div>
+
+    <div id="successModal" class="fixed inset-0 bg-black/90 z-[200] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative animate-[bounce_1s_ease-out]">
+            <div class="bg-green-600 p-6 text-center">
+                <div class="w-20 h-20 bg-white text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto shadow-lg mb-4">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h2 class="text-white text-2xl font-bold">Inscrição Realizada!</h2>
+            </div>
+            <div class="p-8 text-center">
+                <p class="text-gray-700 text-lg mb-2">Seus dados foram enviados para análise.</p>
+                <p class="text-sm text-gray-500 mb-6 text-justify">
+                    Enviamos um e-mail de confirmação com seu número de protocolo. 
+                    Fique atento ao seu WhatsApp e E-mail para o resultado da análise documental. 
+                    <br><br>
+                    <strong>Lembre-se:</strong> O check-in de assentos será liberado apenas 7 dias antes do evento.
+                </p>
+                <a href="index.html" class="block w-full bg-blue-900 text-white py-3 rounded-xl font-bold hover:bg-blue-800 transition">
+                    VOLTAR AO INÍCIO
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div id="cameraModal" class="scanner-overlay">
         <div id="cameraInstructions" class="bg-white p-6 rounded-2xl max-w-sm text-center m-4 w-full">
             <h3 class="font-bold text-lg mb-2" id="camInstructionTitle">Posicione o Rosto</h3>
@@ -413,95 +442,116 @@
             <canvas id="canvas" class="hidden z-0 absolute top-0 left-0 w-full h-full object-contain bg-black"></canvas>
         </div>
     </div>
+	<div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">CPF <span class="text-red-500">*</span></label>
+                            <input type="text" name="cpf" id="inputCpf" class="input-field cpf-mask" placeholder="000.000.000-00" onblur="validarDuplicidade(this)" required>
+                            <span id="cpfFeedback" class="text-[10px] font-bold mt-1 hidden"></span>
+                        </div>
 
-    <script>
-        // --- 1. CONFIGURAÇÃO OPENCV (DETECÇÃO DE BORRÃO) ---
-        let openCvReady = false;
-        function onOpenCvReady() { openCvReady = true; console.log("OpenCV Ready"); }
+		<script>
+        // CONFIGURAÇÃO DA API 
+        const API_CADASTRO_URL = 'https://script.google.com/macros/s/AKfycbzL0YEiKHpbLfYSw8Fso22bpUCw3Aaq_-FVfMMhtuF7BC5fjdj42Rb2IZWzzn55IZSB/exec'; 
 
-        function verificarNitidez(canvasElement) {
-            // Se OpenCV não carregar (falha de rede), permite passar para não travar o usuário
-            if (!openCvReady) return true; 
+        // --- VALIDAÇÃO DE DUPLICIDADE ---
+        async function validarDuplicidade(input) {
+            const cpf = input.value;
+            const feedback = document.getElementById('cpfFeedback');
+            const btnSubmit = document.querySelector('button[onclick="goToStep(2)"]'); // Botão de avançar
+
+            if (cpf.length < 14) return; // Só valida CPF completo
+
+            // UI Loading
+            input.classList.add('bg-gray-100', 'animate-pulse');
+            feedback.className = "text-[10px] font-bold mt-1 text-blue-600 block";
+            feedback.innerText = "Verificando disponibilidade...";
+            input.disabled = true;
 
             try {
-                let src = cv.imread(canvasElement);
-                let gray = new cv.Mat();
-                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+                // Chama Backend
+                const response = await fetch(API_CADASTRO_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'verificarDuplicidade', cpf: cpf }),
+                    // headers: { 'Content-Type': 'text/plain' } // Opcional, dependendo do CORS
+                });
                 
-                let laplacian = new cv.Mat();
-                cv.Laplacian(gray, laplacian, cv.CV_64F);
-                
-                let mean = new cv.Mat();
-                let stddev = new cv.Mat();
-                cv.meanStdDev(laplacian, mean, stddev);
-                
-                // Variância Laplaciana (Métrica de Nitidez)
-                let variance = stddev.data64F[0] * stddev.data64F[0];
-                
-                // Limpeza de memória
-                src.delete(); gray.delete(); laplacian.delete(); mean.delete(); stddev.delete();
+                const data = await response.json();
 
-                // Threshold
-                console.log("Score de Nitidez:", variance);
-                return variance > 100; 
+                // UI Reset
+                input.classList.remove('bg-gray-100', 'animate-pulse');
+                input.disabled = false;
+                input.focus(); // Retorna foco se necessário, ou remove se preferir UX fluida
+
+                if (data.exists) {
+                    // DUPLICADO
+                    input.classList.add('border-red-500', 'text-red-600');
+                    input.classList.remove('border-green-500');
+                    
+                    feedback.className = "text-[10px] font-bold mt-1 text-red-600 block";
+                    feedback.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.message}`;
+                    
+                    // Limpa o valor para forçar correção e desabilita avanço
+                    input.value = "";
+                    if(btnSubmit) btnSubmit.disabled = true;
+                    btnSubmit.classList.add('opacity-50', 'cursor-not-allowed');
+                    
+                    alert("🚫 DUPLICIDADE ENCONTRADA:\n\n" + data.message);
+                } else {
+                    // OK
+                    input.classList.remove('border-red-500', 'text-red-600');
+                    input.classList.add('border-green-500');
+                    
+                    feedback.className = "text-[10px] font-bold mt-1 text-green-600 block";
+                    feedback.innerHTML = `<i class="fa-solid fa-check-circle"></i> CPF disponível para cadastro.`;
+                    
+                    // Reabilita botão
+                    if(btnSubmit) btnSubmit.disabled = false;
+                    btnSubmit.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+
             } catch (err) {
                 console.error(err);
-                return true; // Em caso de erro interno, aprova
+                input.disabled = false;
+                feedback.innerText = "Erro ao validar CPF. Verifique sua conexão.";
+                feedback.className = "text-[10px] font-bold mt-1 text-yellow-600 block";
             }
         }
 
-        // --- 2. LÓGICA DO SISTEMA ---
-        let currentDocType = '';
-        let stream = null;
-        let currentFacingMode = 'environment';
-        let capturedImageBlob = null; // Armazena temporariamente
-
-        // --- MÁSCARAS ---
+        // --- 1. MÁSCARAS E INICIALIZAÇÃO ---
         $(document).ready(function(){ 
             $('.cpf-mask').mask('000.000.000-00');
             $('.phone-mask').mask('(00) 00000-0000');
             $('.cep-mask').mask('00000-000');
         });
+		
 
+        // --- 2. NAVEGAÇÃO E UI ---
         function toggleConjuge() {
             const st = document.getElementById('estadoCivil').value;
             const div = document.getElementById('areaConjuge');
             const boxDoc = document.getElementById('boxCasamento');
-            
-            if(st === 'Casado') {
-                div.classList.remove('hidden');
-                boxDoc.classList.remove('hidden');
-            } else {
-                div.classList.add('hidden');
-                boxDoc.classList.add('hidden');
-            }
+            if(st === 'Casado') { div.classList.remove('hidden'); boxDoc.classList.remove('hidden'); } 
+            else { div.classList.add('hidden'); boxDoc.classList.add('hidden'); }
         }
 
         function toggleRgVerso() {
             const isNovo = document.getElementById('rgNovo').checked;
             const versoCard = document.getElementById('container-rg-verso');
             const labelFrente = document.getElementById('label-rg-frente');
-            
-            if (isNovo) {
-                versoCard.classList.add('hidden');
-                labelFrente.innerText = "RG Aberto / CNH";
-            } else {
-                versoCard.classList.remove('hidden');
-                labelFrente.innerText = "RG (Frente)";
-            }
+            if (isNovo) { versoCard.classList.add('hidden'); labelFrente.innerText = "RG Aberto / CNH"; } 
+            else { versoCard.classList.remove('hidden'); labelFrente.innerText = "RG (Frente)"; }
         }
 
         function buscarCep() {
             const cep = document.getElementById('cep').value.replace(/\D/g, '');
             if (cep.length === 8) {
                 fetch(`https://viacep.com.br/ws/${cep}/json/`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if(!data.erro) {
-                            document.getElementById('logradouro').value = data.logradouro;
-                            document.getElementById('bairro').value = data.bairro;
-                            document.getElementById('localidade').value = data.localidade;
-                            document.getElementById('uf').value = data.uf;
+                    .then(r => r.json())
+                    .then(d => {
+                        if(!d.erro){
+                            document.getElementById('logradouro').value = d.logradouro;
+                            document.getElementById('bairro').value = d.bairro;
+                            document.getElementById('localidade').value = d.localidade;
+                            document.getElementById('uf').value = d.uf;
                         }
                     });
             }
@@ -515,7 +565,6 @@
         }
 
         function goToStep(step) {
-            // Validações
             if(step === 2) {
                 const inputsObrigatorios = [
                     'nome', 'cargo', 'nascimento', 'sexo', 'naturalidade',
@@ -523,75 +572,98 @@
                     'cep', 'endereco', 'numero', 'bairro',
                     'igrejaSede', 'pastorPresidente', 'dataBatismo'
                 ];
-                
                 let erro = false;
                 inputsObrigatorios.forEach(name => {
                     const el = document.querySelector(`[name="${name}"]`);
-                    if(el && !el.value) {
-                        el.classList.add('border-red-500');
-                        erro = true;
-                    } else if(el) {
-                        el.classList.remove('border-red-500');
-                    }
+                    if(el && !el.value) { el.classList.add('border-red-500'); erro = true; } 
+                    else if(el) { el.classList.remove('border-red-500'); }
                 });
-
                 if(erro) return alert("Por favor, preencha todos os campos obrigatórios marcados.");
             }
-            
             if(step === 3) {
                 if(!document.getElementById('input-biometria_facial').value) return alert("A Selfie de Segurança é obrigatória.");
                 if(!document.getElementById('input-rg_frente').value) return alert("O Documento é obrigatório.");
             }
-
             document.getElementById('stepNumber').innerText = step;
             $('.active-step').removeClass('active-step').addClass('hidden-step');
             $('#step' + step).removeClass('hidden-step').addClass('active-step');
             window.scrollTo(0,0);
         }
 
-        // --- 3. CÂMERA & PROCESSAMENTO ---
+        // --- 3. CÂMERA E ARQUIVOS ---
+        let openCvReady = false;
+        function onOpenCvReady() { openCvReady = true; console.log("OpenCV Ready"); }
+        
+        let currentDocType = '';
+        let stream = null;
+        let currentFacingMode = 'environment';
+        let capturedImageBlob = null;
+
+        const fileToBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        async function confirmarUpload(tipo) {
+            const input = document.getElementById('file-' + tipo.split('_')[1]); 
+            if(input.files && input.files[0]) {
+                 const el = document.getElementById('status-' + tipo);
+                 el.innerText = input.files[0].name.substring(0, 20) + "...";
+                 el.className = "text-xs font-bold text-green-600";
+                 el.closest('.doc-card').classList.add('completed');
+            }
+        }
+
+        // Nitidez
+        function verificarNitidez(canvasElement) {
+             if (!openCvReady) return true; 
+             try {
+                let src = cv.imread(canvasElement);
+                let gray = new cv.Mat();
+                cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY, 0);
+                let laplacian = new cv.Mat();
+                cv.Laplacian(gray, laplacian, cv.CV_64F);
+                let mean = new cv.Mat();
+                let stddev = new cv.Mat();
+                cv.meanStdDev(laplacian, mean, stddev);
+                let variance = stddev.data64F[0] * stddev.data64F[0];
+                src.delete(); gray.delete(); laplacian.delete(); mean.delete(); stddev.delete();
+                console.log("Score:", variance);
+                return variance > 100; 
+            } catch (err) { return true; }
+        }
+
+        // Câmera
         function iniciarCaptura(tipo, titulo, formato) {
             currentDocType = tipo;
             document.getElementById('camInstructionTitle').innerText = titulo;
-            
             const frame = document.getElementById('scanFrame');
-            if(formato === 'square') {
-                frame.style.aspectRatio = '1/1';
-                frame.style.borderRadius = '50%';
-            } else {
-                frame.style.aspectRatio = '1.58/1';
-                frame.style.borderRadius = '12px';
-            }
-
-            // Define câmera padrão
-            if(tipo === 'biometria_facial' || tipo === 'foto_credencial') currentFacingMode = 'user';
+            if(formato === 'square') { frame.style.aspectRatio = '1/1'; frame.style.borderRadius = '50%'; } 
+            else { frame.style.aspectRatio = '1.58/1'; frame.style.borderRadius = '12px'; }
+            
+            if(tipo.includes('facial') || tipo === 'foto_credencial') currentFacingMode = 'user';
             else currentFacingMode = 'environment';
 
             document.getElementById('cameraModal').style.display = 'flex';
             document.getElementById('cameraInstructions').style.display = 'block';
             document.getElementById('cameraInterface').classList.add('hidden');
-            document.getElementById('blurWarning').classList.add('hidden'); 
-            
-            // Reseta UI de Preview
-            retirarFoto(); 
+            document.getElementById('blurWarning').classList.add('hidden');
+            retirarFoto();
         }
 
         async function abrirCameraReal() {
             document.getElementById('cameraInstructions').style.display = 'none';
             document.getElementById('cameraInterface').classList.remove('hidden');
-            
             const videoEl = document.getElementById('video');
             
-            // Aplica espelhamento visual SE for câmera frontal
-            if(currentFacingMode === 'user') {
-                videoEl.classList.add('mirrored');
-            } else {
-                videoEl.classList.remove('mirrored');
-            }
+            // Corrige espelhamento se for frontal
+            if(currentFacingMode === 'user') videoEl.classList.add('mirrored');
+            else videoEl.classList.remove('mirrored');
 
             try {
                 if(stream) stream.getTracks().forEach(t => t.stop());
-                
                 stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: currentFacingMode } });
                 videoEl.srcObject = stream;
             } catch (err) { alert("Erro câmera: " + err.message); fecharCameraModal(); }
@@ -614,17 +686,14 @@
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             
-            // Desenha no canvas
-            // Se for selfie (user), precisamos espelhar o desenho para corresponder ao preview visual
+            // Corrige espelhamento no Canvas se for frontal
             if(currentFacingMode === 'user') {
                  context.translate(canvas.width, 0);
                  context.scale(-1, 1);
             }
-            
             context.drawImage(video, 0, 0);
 
-            // VALIDAÇÃO DE NITIDEZ (Biometria e Credencial)
-            // Agora valida também biometria_facial conforme solicitado
+            // Valida nitidez
             if(currentDocType === 'foto_credencial' || currentDocType === 'biometria_facial') {
                 const isSharp = verificarNitidez(canvas);
                 if(!isSharp) {
@@ -634,19 +703,16 @@
                     return; 
                 }
             }
-
-            // Se OK, congela a imagem para preview
-            capturedImageBlob = canvas.toDataURL('image/jpeg', 0.9);
             
-            // UI de Preview
-            canvas.classList.remove('hidden'); // Mostra o canvas estático
+            // Preview
+            capturedImageBlob = canvas.toDataURL('image/jpeg', 0.9);
+            canvas.classList.remove('hidden');
             document.getElementById('cameraControls').classList.add('hidden');
             document.getElementById('previewButtons').classList.remove('hidden');
             document.getElementById('previewButtons').classList.add('flex');
         }
 
         function retirarFoto() {
-            // Volta para o vídeo ao vivo
             document.getElementById('canvas').classList.add('hidden');
             document.getElementById('cameraControls').classList.remove('hidden');
             document.getElementById('previewButtons').classList.add('hidden');
@@ -655,15 +721,11 @@
         }
 
         function confirmarFoto() {
-            if(capturedImageBlob) {
-                salvarImagem(capturedImageBlob);
-            }
+            if(capturedImageBlob) { salvarImagem(capturedImageBlob); }
         }
 
         function salvarImagem(base64) {
             document.getElementById('input-' + currentDocType).value = base64;
-            
-            // Atualiza UI
             if(currentDocType === 'foto_credencial') {
                 const feedback = document.getElementById('quality-feedback');
                 feedback.classList.remove('hidden', 'text-red-600', 'bg-red-50');
@@ -680,17 +742,9 @@
             }
             fecharCameraModal();
         }
-
-        // --- 4. UPLOADS NORMAIS ---
-        function confirmarUpload(tipo) {
-            const el = document.getElementById('status-' + tipo);
-            el.innerText = "Anexado";
-            el.className = "text-xs font-bold text-green-600";
-            el.closest('.doc-card').classList.add('completed');
-        }
-
+        
         function processarImagemArquivo(input, tipo) {
-            if (input.files && input.files[0]) {
+             if (input.files && input.files[0]) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const img = new Image();
@@ -700,15 +754,12 @@
                         canvas.height = img.height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0);
-                        
-                        // Valida Nitidez também no Upload da Galeria
                         const isSharp = verificarNitidez(canvas);
                         if(!isSharp) {
-                            alert("A foto enviada parece estar desfocada. O sistema exige alta nitidez para a credencial. Por favor, escolha outra.");
+                            alert("Foto desfocada. Tente outra.");
                             input.value = ""; 
                             return;
                         }
-                        
                         document.getElementById('input-' + tipo).value = e.target.result;
                         const feedback = document.getElementById('quality-feedback');
                         feedback.classList.remove('hidden');
@@ -721,12 +772,58 @@
             }
         }
 
-        document.getElementById('ministerForm').addEventListener('submit', function(e){
+        // --- 4. SUBMIT E INTEGRAÇÃO ---
+        document.getElementById('ministerForm').addEventListener('submit', async function(e){
             e.preventDefault();
-            if(!document.getElementById('termoAceite').checked) return alert("Aceite os termos.");
-            if(!document.getElementById('input-foto_credencial').value) return alert("A Foto da Credencial é obrigatória.");
             
-            alert("Inscrição Enviada! \nA foto da credencial passou na validação de qualidade.");
+            if(!document.getElementById('termoAceite').checked) return alert("Você precisa aceitar os termos.");
+            if(!document.getElementById('input-foto_credencial').value) return alert("Foto da Credencial Obrigatória.");
+
+            const loading = document.getElementById('loadingOverlay');
+            loading.classList.remove('hidden');
+            loading.classList.add('flex');
+
+            try {
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                
+                // Processar Uploads
+                const uploads = [
+                    { id: 'file-teologia', key: 'doc_teologia' },
+                    { id: 'file-antecedentes', key: 'doc_antecedentes' },
+                    { id: 'file-casamento', key: 'doc_casamento' }
+                ];
+
+                for (const item of uploads) {
+                    const input = document.getElementById(item.id);
+                    if(input && input.files && input.files[0]) {
+                        data[item.key] = await fileToBase64(input.files[0]);
+                    } else {
+                        data[item.key] = "";
+                    }
+                }
+
+                data.action = 'cadastroMinistro';
+
+                // Enviar (mode: 'no-cors' para evitar erro de CORS do GAS)
+                await fetch(API_CADASTRO_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(data),
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+
+                // Sucesso
+                loading.classList.add('hidden');
+                const modal = document.getElementById('successModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+
+            } catch (err) {
+                console.error(err);
+                loading.classList.add('hidden');
+                alert("Ocorreu um erro na conexão. Tente novamente.");
+            }
         });
     </script>
 </body>
