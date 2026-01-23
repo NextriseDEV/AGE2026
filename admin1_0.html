@@ -217,7 +217,7 @@
             }
         }
 
-async function recuperarSenha() {
+    async function recuperarSenha() {
             const email = document.getElementById('recoverEmail').value;
             if(!email) return alert("Digite seu e-mail.");
             
@@ -313,9 +313,18 @@ async function recuperarSenha() {
             }
 
             lista.forEach(item => {
+                // Lógica visual do Score IA
+                let iaBadgeClass = 'bg-gray-100 text-gray-600';
+                let iaText = item.ia_score + '% Match';
+                if(item.ia_score >= 80) iaBadgeClass = 'bg-green-100 text-green-700';
+                else if(item.ia_score < 50) iaBadgeClass = 'bg-red-100 text-red-700';
+
                 tbody.innerHTML += `
                     <tr class="hover:bg-blue-50 transition border-b border-gray-100">
-                        <td class="p-4 text-gray-500 whitespace-nowrap text-xs">${item.data}</td>
+                        <td class="p-4 text-gray-500 whitespace-nowrap text-xs">
+                            ${item.data}<br>
+                            <span class="text-[10px] text-gray-400">ID: ${item.id}</span>
+                        </td>
                         <td class="p-4">
                             <p class="font-bold text-gray-800">${item.nome}</p>
                             <span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase font-bold">${item.cargo || '-'}</span>
@@ -323,16 +332,28 @@ async function recuperarSenha() {
                         <td class="p-4 text-gray-600 text-sm">${item.tipo || 'Cadastro'}</td>
                         <td class="p-4">
                             <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full ${item.status.includes('PENDENTE') || item.status.includes('ANÁLISE') ? 'bg-yellow-500' : 'bg-green-500'}"></span>
-                                <span class="text-xs font-bold text-gray-600">${item.status}</span>
+                                <span class="px-2 py-1 rounded text-xs font-bold border ${iaBadgeClass}">
+                                    <i class="fa-solid fa-robot"></i> ${iaText}
+                                </span>
                             </div>
                         </td>
                         <td class="p-4 text-right">
-                            <button onclick="openAnalyzeModal('${item.id}')" class="bg-blue-900 text-white px-3 py-1 rounded shadow hover:bg-blue-800 text-xs font-bold">ANALISAR</button>
+                            <div class="flex justify-end gap-2">
+                                <span class="text-xs font-bold uppercase py-1 px-2 rounded ${getStatusColor(item.status)}">${item.status}</span>
+                                <button onclick="openAnalyzeModal('${item.id}')" class="bg-blue-900 text-white px-3 py-1 rounded shadow hover:bg-blue-800 text-xs font-bold">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             });
+        }
+
+        function getStatusColor(status) {
+            if(status === 'APROVADO') return 'bg-green-100 text-green-800';
+            if(status === 'REJEITADO') return 'bg-red-100 text-red-800';
+            return 'bg-yellow-100 text-yellow-800';
         }
 
         function atualizarStats(dados) {
@@ -513,28 +534,50 @@ async function recuperarSenha() {
             renderTableRows(filtrados);
         }
 
-        function aprovarCadastro() {
+        async function aprovarCadastro() {
             const btn = document.getElementById('btnAprovar');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
             btn.disabled = true;
             
-            setTimeout(() => {
-                const index = dbCache.findIndex(i => i.id === currentModalId);
-                if (index !== -1) dbCache[index].status = 'APROVADO';
-                alert(`✅ Cadastro ${currentModalId} Aprovado!`);
-                closeModal();
-                atualizarStats(dbCache);
-                renderTable('pendentes');
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'approveUser', id: currentModalId })
+                });
+                const res = await response.json();
+
+                if(res.status === 'success') {
+                    alert("✅ " + res.message);
+                    closeModal();
+                    carregarDados(true); // Força atualização do cache para ver mudança
+                } else {
+                    alert("Erro: " + res.message);
+                }
+            } catch (e) {
+                alert("Erro de conexão.");
+            } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
-            }, 1000);
+            }
         }
+        async function rejeitarCadastro() {
+            const motivo = prompt("Motivo da rejeição:");
+            if (!motivo) return;
 
-        window.onload = function() {
-            const stored = localStorage.getItem('conadibe_user');
-            if(stored) iniciarSessao(JSON.parse(stored));
-            else document.getElementById('login-screen').style.display = 'flex';
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'rejectUser', id: currentModalId, motivo: motivo })
+                });
+                const res = await response.json();
+                
+                if(res.status === 'success') {
+                    alert("🚫 Cadastro Rejeitado.");
+                    closeModal();
+                    carregarDados(true);
+                }
+            } catch (e) { alert("Erro ao rejeitar."); }
         };
     </script>
 </body>
