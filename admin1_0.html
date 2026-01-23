@@ -30,22 +30,45 @@
         .doc-preview { height: 100%; min-height: 400px; background: #1f2937; display: flex; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; position: relative; }
         
         .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center relative">
             <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" class="h-16 mx-auto mb-6">
             <h2 class="text-xl font-bold text-blue-900 mb-1">Acesso Restrito</h2>
             <p class="text-sm text-gray-500 mb-6">Secretaria Geral CONADIBE</p>
+            
             <form onsubmit="realizarLogin(event)" class="space-y-4 text-left">
-                <input type="email" id="emailLogin" class="w-full p-3 border rounded-lg" placeholder="E-mail" required>
-                <input type="password" id="senhaLogin" class="w-full p-3 border rounded-lg" placeholder="Senha" required>
-                <button type="submit" class="w-full bg-blue-900 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition">ENTRAR</button>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">E-mail</label>
+                    <input type="email" id="emailLogin" class="w-full p-3 border rounded-lg focus:border-blue-900 outline-none" required>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Senha</label>
+                    <input type="password" id="senhaLogin" class="w-full p-3 border rounded-lg focus:border-blue-900 outline-none" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-900 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition">
+                    ENTRAR NO SISTEMA
+                </button>
             </form>
-            <p id="loginMsg" class="mt-4 text-xs text-red-500 font-bold h-4 text-center"></p>
+            <div class="mt-4 flex justify-between items-center text-xs">
+                <a href="#" onclick="document.getElementById('modalRecover').style.display='flex'" class="text-blue-600 hover:underline">Esqueci minha senha</a>
+                <span id="loginMsg" class="text-red-500 font-bold h-4"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRecover" class="modal-analise">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm relative">
+            <button onclick="document.getElementById('modalRecover').style.display='none'" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-lg font-bold text-blue-900 mb-4">Recuperar Acesso</h3>
+            <p class="text-sm text-gray-500 mb-4">Digite seu e-mail cadastrado. Se válido, enviaremos instruções.</p>
+            <input type="email" id="recoverEmail" class="w-full p-3 border rounded mb-4" placeholder="seu@email.com">
+            <button onclick="recuperarSenha()" class="w-full bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">ENVIAR SOLICITAÇÃO</button>
         </div>
     </div>
 
@@ -58,20 +81,24 @@
             <p class="text-xs text-blue-300">CONADIBE v2.0</p>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="#" onclick="switchView('dashboard')" class="block p-3 rounded bg-blue-900/50 border-l-4 border-yellow-500 text-white hover:bg-blue-800"><i class="fa-solid fa-list-check w-6"></i> Pendentes <span id="count-pending" class="float-right bg-red-600 text-xs px-2 py-1 rounded-full">--</span></a>
-            <a href="#" onclick="switchView('aprovados')" class="block p-3 rounded text-gray-300 hover:bg-blue-800"><i class="fa-solid fa-check-double w-6"></i> Aprovados</a>
-            <a href="#" class="block p-3 rounded text-gray-300 hover:bg-blue-800"><i class="fa-solid fa-chair w-6"></i> Mapa Assentos</a>
-            <a href="#" onclick="switchView('users')" id="menuUsersBtn" class="hidden p-3 rounded text-gray-300 hover:bg-blue-800 border-t border-blue-800 mt-4"><i class="fa-solid fa-users-gear w-6"></i> Usuários</a>
+            <a href="#" onclick="switchView('dashboard')" class="block p-3 rounded bg-blue-900/50 border-l-4 border-yellow-500 text-white hover:bg-blue-800 transition"><i class="fa-solid fa-list-check w-6"></i> Pendentes <span id="count-pending" class="float-right bg-red-600 text-xs px-2 py-1 rounded-full">--</span></a>
+            <a href="#" onclick="switchView('aprovados')" class="block p-3 rounded text-gray-300 hover:bg-blue-800 transition"><i class="fa-solid fa-check-double w-6"></i> Aprovados</a>
+            <a href="#" class="block p-3 rounded text-gray-300 hover:bg-blue-800 transition"><i class="fa-solid fa-chair w-6"></i> Mapa Assentos</a>
+            <a href="#" onclick="switchView('users')" id="menuUsersBtn" class="hidden p-3 rounded text-gray-300 hover:bg-blue-800 transition border-t border-blue-800 mt-4"><i class="fa-solid fa-users-gear w-6"></i> Usuários</a>
         </nav>
         <div class="p-4 border-t border-blue-800">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-blue-900 font-bold" id="userInitial">A</div>
-                <div><p class="text-sm font-bold" id="userNameDisplay">Analista</p><button onclick="logout()" class="text-xs text-red-300 hover:text-white">Sair</button></div>
+                <div>
+                    <p class="text-sm font-bold" id="userNameDisplay">Analista</p>
+                    <button onclick="logout()" class="text-xs text-red-300 hover:text-white">Sair</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="content">
+        
         <div class="md:hidden flex justify-between items-center mb-6">
             <button onclick="toggleMenu()" class="text-blue-900 p-2"><i class="fa-solid fa-bars text-2xl"></i></button>
             <span class="font-bold text-blue-900">Painel Gestor</span>
@@ -82,7 +109,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500"><p class="text-gray-500 text-xs uppercase font-bold">Aguardando</p><h3 class="text-3xl font-bold text-gray-800" id="stat-pending">--</h3></div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500"><p class="text-gray-500 text-xs uppercase font-bold">Total Inscritos</p><h3 class="text-3xl font-bold text-gray-800" id="stat-total">--</h3></div>
-                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500"><p class="text-gray-500 text-xs uppercase font-bold">Assentos Ocupados</p><h3 class="text-3xl font-bold text-gray-800">890</h3></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500"><p class="text-gray-500 text-xs uppercase font-bold">Assentos Ocupados</p><h3 class="text-3xl font-bold text-gray-800" id="stat-seats">890</h3></div>
                 <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500"><p class="text-gray-500 text-xs uppercase font-bold">Arrecadação</p><h3 class="text-3xl font-bold text-gray-800">R$ --k</h3></div>
             </div>
 
@@ -152,11 +179,12 @@
 
     <script>
         // CONFIGURAÇÃO
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxFrFjamzbq5ogR5xCfW3MaK1kNfB2F2Wc7dvlvBL2wfzeXvC52eAMHvUSHczGZ_-_imQ/exec'; // COLOQUE A URL DO DEPLOY AQUI
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxFrFjamzbq5ogR5xCfW3MaK1kNfB2F2Wc7dvlvBL2wfzeXvC52eAMHvUSHczGZ_-_imQ/exec'; 
         
         let dbCache = []; 
         let currentModalId = null;
         let currentUser = null;
+        let usersCache = []; // Cache específico para usuários
 
         // --- AUTH ---
         async function realizarLogin(e) {
@@ -169,7 +197,6 @@
             const senha = document.getElementById('senhaLogin').value;
 
             try {
-                // Chama o Backend para validar senha (Seguro)
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'login', email: email, senha: senha })
@@ -187,6 +214,29 @@
             } catch (err) {
                 alert("Erro de conexão: " + err);
                 btn.disabled = false;
+            }
+        }
+
+        async function recuperarSenha() {
+            const email = document.getElementById('recoverEmail').value;
+            if(!email) return alert("Digite seu e-mail.");
+            
+            const btn = document.querySelector('#modalRecover button');
+            btn.innerText = 'ENVIANDO...'; btn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'recoverPassword', email: email })
+                });
+                const res = await response.json();
+                
+                alert(res.message || "Solicitação enviada.");
+                document.getElementById('modalRecover').style.display = 'none';
+            } catch (e) {
+                alert("Erro ao enviar solicitação.");
+            } finally {
+                btn.innerText = 'ENVIAR CÓDIGO'; btn.disabled = false;
             }
         }
 
@@ -211,23 +261,21 @@
         // --- DADOS E CACHE ---
         async function carregarDados(forceUpdate = false) {
             const tbody = document.getElementById('table-body');
-            
-            // 1. Tenta Cache Local
             const localData = sessionStorage.getItem('conadibe_db_cache');
+            
             if (localData && !forceUpdate) {
                 dbCache = JSON.parse(localData);
                 processarDadosParaTabela(dbCache);
                 return;
             }
 
-            // 2. Busca no Servidor (Traffic Otimizado pelo CacheService do Google)
             tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center"><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando dados...</td></tr>';
             
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getDataAdmin`);
                 const data = await response.json();
                 
-                sessionStorage.setItem('conadibe_db_cache', JSON.stringify(data)); // Atualiza Local
+                sessionStorage.setItem('conadibe_db_cache', JSON.stringify(data)); 
                 dbCache = data;
                 processarDadosParaTabela(data);
                 
@@ -304,12 +352,22 @@
 
         async function renderUserManagement() {
             const container = document.getElementById('view-users');
+            
+            // Layout com filtros
             container.innerHTML = `
-                <div class="bg-white p-6 rounded-xl shadow-sm mb-6 flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-gray-800">Gestão de Acesso</h2>
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Gestão de Acesso</h2>
+                        <div class="flex gap-2 mt-2 text-sm">
+                            <button onclick="filterUsers('ATIVO')" class="text-blue-600 font-bold border-b-2 border-blue-600">Ativos</button>
+                            <button onclick="filterUsers('INATIVO')" class="text-gray-500 hover:text-blue-600">Inativos</button>
+                            <button onclick="filterUsers('TODOS')" class="text-gray-500 hover:text-blue-600">Todos</button>
+                        </div>
+                    </div>
                     <button onclick="document.getElementById('modalNewUser').style.display='flex'" class="bg-blue-900 text-white px-4 py-2 rounded font-bold hover:bg-blue-800"><i class="fa-solid fa-plus"></i> Novo</button>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-4" id="usersListContainer">Carregando...</div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-4 overflow-x-auto" id="usersListContainer">Carregando...</div>
                 
                 <div id="modalNewUser" class="modal-analise">
                     <div class="bg-white rounded-xl p-6 w-full max-w-md relative">
@@ -328,11 +386,37 @@
             
             // Carrega lista
             const res = await fetch(`${SCRIPT_URL}?action=getUsers`);
-            const users = await res.json();
+            usersCache = await res.json(); // Salva em cache local para filtrar
             
-            let html = '<table class="w-full text-left text-sm"><thead><tr class="text-gray-500 border-b"><th>Nome</th><th>E-mail</th><th>Função</th><th>Status</th></tr></thead><tbody>';
+            renderUsersTable(usersCache.filter(u => u.status === 'ATIVO')); // Default Ativos
+        }
+
+        function filterUsers(filter) {
+            let filtered = usersCache;
+            if (filter !== 'TODOS') filtered = usersCache.filter(u => u.status === filter);
+            renderUsersTable(filtered);
+        }
+
+        function renderUsersTable(users) {
+            let html = '<table class="w-full text-left text-sm min-w-[600px]"><thead><tr class="text-gray-500 border-b"><th>Nome</th><th>E-mail</th><th>Função</th><th>Status</th><th class="text-right">Ação</th></tr></thead><tbody>';
+            
+            if (users.length === 0) html += '<tr><td colspan="5" class="p-4 text-center text-gray-400">Nenhum usuário encontrado.</td></tr>';
+
             users.forEach(u => {
-                html += `<tr class="border-b hover:bg-gray-50"><td class="p-3 font-bold">${u.name}</td><td class="p-3 text-gray-500">${u.email}</td><td class="p-3"><span class="bg-blue-100 text-blue-800 px-2 rounded text-xs">${u.role}</span></td><td class="p-3 text-green-600">${u.status}</td></tr>`;
+                const isActive = u.status === 'ATIVO';
+                const actionBtn = isActive 
+                    ? `<button onclick="alterarStatusUsuario('${u.email}', 'INATIVO')" class="text-red-400 hover:text-red-600" title="Inativar"><i class="fa-solid fa-trash"></i></button>`
+                    : `<button onclick="alterarStatusUsuario('${u.email}', 'ATIVO')" class="text-green-500 hover:text-green-700" title="Reativar"><i class="fa-solid fa-rotate-left"></i></button>`;
+
+                html += `<tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold">${u.name}</td>
+                    <td class="p-3 text-gray-500">${u.email}</td>
+                    <td class="p-3"><span class="bg-blue-100 text-blue-800 px-2 rounded text-xs">${u.role}</span></td>
+                    <td class="p-3"><span class="${isActive ? 'text-green-600' : 'text-red-500'} font-bold text-xs">● ${u.status}</span></td>
+                    <td class="p-3 text-right">
+                        ${u.role !== 'MASTER' ? actionBtn : ''}
+                    </td>
+                </tr>`;
             });
             html += '</tbody></table>';
             document.getElementById('usersListContainer').innerHTML = html;
@@ -362,6 +446,22 @@
             btn.innerText = 'CRIAR'; btn.disabled = false;
         }
 
+        async function alterarStatusUsuario(email, novoStatus) {
+            if(!confirm(`Deseja alterar o status de ${email} para ${novoStatus}?`)) return;
+            
+            const action = novoStatus === 'ATIVO' ? 'reactivateUser' : 'inactivateUser';
+            
+            try {
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: action, email: email }) 
+                });
+                const data = await res.json();
+                alert(data.message);
+                renderUserManagement(); // Recarrega lista
+            } catch(e) { alert("Erro ao atualizar status."); }
+        }
+
         // --- MODAL DE ANÁLISE ---
         function openAnalyzeModal(id) {
             const registro = dbCache.find(i => i.id === id);
@@ -370,7 +470,6 @@
             document.getElementById('modalId').innerText = "#" + id;
             document.getElementById('modalSubtitle').innerText = registro.nome;
             
-            // Renderiza Dados
             let html = `<div class="grid gap-2 text-xs">`;
             for (const [key, value] of Object.entries(registro)) {
                 if(key !== 'docs' && key !== 'id') html += `<div class="border-b pb-1"><span class="text-gray-500 uppercase">${key}:</span> <span class="font-bold">${value}</span></div>`;
@@ -378,10 +477,8 @@
             html += `</div>`;
             document.getElementById('modalDataContent').innerHTML = html;
 
-            // Renderiza Docs
             const tabs = document.getElementById('docTabs');
             tabs.innerHTML = '';
-            // Exemplo de como iterar se vier do backend corretamente mapeado
             if(registro.docs) {
                 Object.entries(registro.docs).forEach(([k, v], i) => {
                     const btn = document.createElement('button');
@@ -404,7 +501,24 @@
             renderTableRows(filtrados);
         }
 
-        // Init
+        function aprovarCadastro() {
+            const btn = document.getElementById('btnAprovar');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                const index = dbCache.findIndex(i => i.id === currentModalId);
+                if (index !== -1) dbCache[index].status = 'APROVADO';
+                alert(`✅ Cadastro ${currentModalId} Aprovado!`);
+                closeModal();
+                atualizarStats(dbCache);
+                renderTable('pendentes');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 1000);
+        }
+
         window.onload = function() {
             const stored = localStorage.getItem('conadibe_user');
             if(stored) iniciarSessao(JSON.parse(stored));
