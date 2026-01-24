@@ -9,236 +9,708 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .sidebar { width: 250px; background: #0d2d5a; min-height: 100vh; color: white; position: fixed; }
-        .content { margin-left: 250px; padding: 2rem; }
         
-        /* Modal de Análise */
-        .modal-analise { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 50; justify-content: center; items-center; padding: 20px; }
-        .doc-preview { height: 500px; background: #333; display: flex; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; }
+        /* Layout Responsivo */
+        .sidebar { width: 250px; background: #0d2d5a; min-height: 100vh; color: white; position: fixed; transition: transform 0.3s ease-in-out; z-index: 40; }
+        .content { margin-left: 250px; padding: 2rem; transition: margin-left 0.3s ease-in-out; }
         
-        /* Status Badges */
-        .badge-pendente { background: #fef3c7; color: #d97706; }
-        .badge-aprovado { background: #dcfce7; color: #166534; }
-        .badge-rejeitado { background: #fee2e2; color: #991b1b; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+            .content { margin-left: 0; padding: 1rem; }
+            .overlay-menu { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 30; }
+            .overlay-menu.active { display: block; }
+        }
+
+        /* Login Screen */
+        #login-screen { position: fixed; inset: 0; z-index: 100; background: #0d2d5a; display: flex; align-items: center; justify-content: center; }
+
+        /* Modal */
+        .modal-analise { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 110; justify-content: center; items-center; padding: 10px; }
+        .doc-preview { height: 100%; min-height: 400px; background: #1f2937; display: flex; align-items: center; justify-content: center; border-radius: 8px; overflow: hidden; position: relative; }
         
-        /* Simulação de IA Score */
-        .ai-score-high { color: #16a34a; font-weight: bold; }
-        .ai-score-low { color: #dc2626; font-weight: bold; }
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar flex flex-col">
-        <div class="p-6 text-center border-b border-blue-800">
-            <h2 class="text-xl font-bold tracking-wider text-yellow-500">GESTOR CONADIBE</h2>
-            <p class="text-xs text-blue-300">Painel de Homologação</p>
+    <div id="login-screen">
+        <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-sm text-center relative">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" class="h-16 mx-auto mb-6">
+            <h2 class="text-xl font-bold text-blue-900 mb-1">Acesso Restrito</h2>
+            <p class="text-sm text-gray-500 mb-6">Secretaria Geral CONADIBE</p>
+            
+            <form onsubmit="realizarLogin(event)" class="space-y-4 text-left">
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">E-mail</label>
+                    <input type="email" id="emailLogin" class="w-full p-3 border rounded-lg focus:border-blue-900 outline-none" required>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 uppercase">Senha</label>
+                    <input type="password" id="senhaLogin" class="w-full p-3 border rounded-lg focus:border-blue-900 outline-none" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-900 text-white font-bold py-3 rounded-lg hover:bg-blue-800 transition">
+                    ENTRAR NO SISTEMA
+                </button>
+            </form>
+            <div class="mt-4 flex justify-between items-center text-xs">
+                <a href="#" onclick="document.getElementById('modalRecover').style.display='flex'" class="text-blue-600 hover:underline">Esqueci minha senha</a>
+                <span id="loginMsg" class="text-red-500 font-bold h-4"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRecover" class="modal-analise">
+        <div class="bg-white rounded-xl p-6 w-full max-w-sm relative">
+            <button onclick="document.getElementById('modalRecover').style.display='none'" class="absolute top-4 right-4 text-gray-400 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-lg font-bold text-blue-900 mb-4">Recuperar Acesso</h3>
+            <p class="text-sm text-gray-500 mb-4">Digite seu e-mail cadastrado.</p>
+            <input type="email" id="recoverEmail" class="w-full p-3 border rounded mb-4" placeholder="seu@email.com">
+            <button onclick="recuperarSenha()" id="btnRecuperarEnvio" class="w-full bg-green-600 text-white py-2 rounded font-bold hover:bg-green-700">ENVIAR SOLICITAÇÃO</button>
+        </div>
+    </div>
+
+    <div id="overlayMenu" class="overlay-menu" onclick="toggleMenu()"></div>
+
+    <div id="sidebar" class="sidebar flex flex-col">
+        <div class="p-6 text-center border-b border-blue-800 relative">
+            <button onclick="toggleMenu()" class="md:hidden absolute top-4 right-4 text-blue-300"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h2 class="text-xl font-bold tracking-wider text-yellow-500">GESTOR</h2>
+            <p class="text-xs text-blue-300">CONADIBE v2.0</p>
         </div>
         <nav class="flex-1 p-4 space-y-2">
-            <a href="#" class="block p-3 rounded bg-blue-900/50 border-l-4 border-yellow-500"><i class="fa-solid fa-list-check w-6"></i> Pendentes <span id="count-pending" class="float-right bg-red-600 text-xs px-2 py-1 rounded-full">12</span></a>
-            <a href="#" class="block p-3 rounded hover:bg-blue-800 text-gray-300"><i class="fa-solid fa-check-double w-6"></i> Aprovados</a>
-            <a href="#" class="block p-3 rounded hover:bg-blue-800 text-gray-300"><i class="fa-solid fa-chair w-6"></i> Mapa de Assentos</a>
+            <a href="#" onclick="switchView('dashboard')" class="block p-3 rounded bg-blue-900/50 border-l-4 border-yellow-500 text-white hover:bg-blue-800 transition"><i class="fa-solid fa-list-check w-6"></i> Pendentes <span id="count-pending" class="float-right bg-red-600 text-xs px-2 py-1 rounded-full">--</span></a>
+            <a href="#" onclick="switchView('aprovados')" class="block p-3 rounded text-gray-300 hover:bg-blue-800 transition"><i class="fa-solid fa-check-double w-6"></i> Aprovados</a>
+            <a href="#" onclick="switchView('reprovados')" class="block p-3 rounded text-gray-300 hover:bg-red-900/30 hover:text-red-200 transition"><i class="fa-solid fa-ban w-6"></i> Reprovados</a>
+            <a href="#" class="block p-3 rounded text-gray-300 hover:bg-blue-800 transition"><i class="fa-solid fa-chair w-6"></i> Mapa Assentos</a>
+            <a href="#" onclick="switchView('users')" id="menuUsersBtn" class="hidden p-3 rounded text-gray-300 hover:bg-blue-800 transition border-t border-blue-800 mt-4"><i class="fa-solid fa-users-gear w-6"></i> Usuários</a>
         </nav>
         <div class="p-4 border-t border-blue-800">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-blue-900 font-bold">A</div>
+                <div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-blue-900 font-bold" id="userInitial">A</div>
                 <div>
-                    <p class="text-sm font-bold">Analista</p>
-                    <p class="text-xs text-green-400">Online</p>
+                    <p class="text-sm font-bold" id="userNameDisplay">Analista</p>
+                    <button onclick="logout()" class="text-xs text-red-300 hover:text-white">Sair</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="content">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Aguardando Análise</p>
-                <h3 class="text-3xl font-bold text-gray-800">12</h3>
+        
+        <div class="md:hidden flex justify-between items-center mb-6">
+            <button onclick="toggleMenu()" class="text-blue-900 p-2"><i class="fa-solid fa-bars text-2xl"></i></button>
+            <span class="font-bold text-blue-900">Painel Gestor</span>
+            <div class="w-8"></div>
+        </div>
+
+        <div id="view-dashboard">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500"><p class="text-gray-500 text-xs uppercase font-bold">Aguardando</p><h3 class="text-3xl font-bold text-gray-800" id="stat-pending">--</h3></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500"><p class="text-gray-500 text-xs uppercase font-bold">Total Inscritos</p><h3 class="text-3xl font-bold text-gray-800" id="stat-total">--</h3></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500"><p class="text-gray-500 text-xs uppercase font-bold">Assentos Ocupados</p><h3 class="text-3xl font-bold text-gray-800" id="stat-seats">890</h3></div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500"><p class="text-gray-500 text-xs uppercase font-bold">Arrecadação</p><h3 class="text-3xl font-bold text-gray-800">R$ --k</h3></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Ministros Inscritos</p>
-                <h3 class="text-3xl font-bold text-gray-800">145</h3>
+
+            <div class="bg-white p-4 rounded-t-xl border-b flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm">
+                <h2 class="font-bold text-gray-700 flex items-center gap-2"><i class="fa-solid fa-table"></i> <span id="tableTitle">Fila de Aprovação</span></h2>
+                <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                    
+                    <select id="filterCargo" onchange="filterTable()" class="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-blue-500 bg-white text-gray-600 font-semibold">
+                        <option value="">Todos os Cargos</option>
+                        <option value="Pastor">Pastores</option>
+                        <option value="Evangelista">Evangelistas</option>
+                        <option value="Missionario">Missionários</option>
+                        <option value="Presbitero">Presbíteros</option>
+                        <option value="Diacono">Diáconos</option>
+                    </select>
+
+                    <div class="relative w-full md:w-64">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar..." class="border rounded-lg pl-10 pr-4 py-2 text-sm w-full focus:outline-none focus:border-blue-500" onkeyup="filterTable()">
+                    </div>
+                    <button onclick="carregarDados(true)" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 flex items-center gap-2 shadow-sm border border-blue-200 transition">
+                        <i class="fa-solid fa-rotate-right"></i> Atualizar
+                    </button>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Assentos Ocupados</p>
-                <h3 class="text-3xl font-bold text-gray-800">890</h3>
-            </div>
-             <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-purple-500">
-                <p class="text-gray-500 text-xs uppercase font-bold">Total Arrecadado</p>
-                <h3 class="text-3xl font-bold text-gray-800">R$ --,--</h3>
+
+            <div class="bg-white rounded-b-xl shadow-sm overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[800px]">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+                        <tr><th class="p-4">Data</th><th class="p-4">Nome / Cargo</th><th class="p-4">Categoria</th><th class="p-4">Validação IA</th><th class="p-4 text-right">Ação</th></tr>
+                    </thead>
+                    <tbody id="table-body" class="text-sm divide-y divide-gray-100">
+                        <tr><td colspan="5" class="p-8 text-center text-gray-400">Carregando dados...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-t-xl border-b flex justify-between items-center shadow-sm">
-            <h2 class="font-bold text-gray-700">Fila de Aprovação</h2>
-            <div class="flex gap-2">
-                <input type="text" id="searchInput" placeholder="Buscar por nome, CPF..." class="border rounded-lg px-4 py-2 text-sm w-64 focus:outline-none focus:border-blue-500" onkeyup="filterTable()">
-                <button class="bg-gray-100 p-2 rounded-lg text-gray-600 hover:bg-gray-200"><i class="fa-solid fa-filter"></i></button>
+        <div id="view-users" class="hidden">
             </div>
-        </div>
-
-        <div class="bg-white rounded-b-xl shadow-sm overflow-hidden">
-            <table class="w-full text-left border-collapse">
-                <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
-                    <tr>
-                        <th class="p-4">Data</th>
-                        <th class="p-4">Nome / Cargo</th>
-                        <th class="p-4">Categoria</th>
-                        <th class="p-4">Doc. Status (IA)</th>
-                        <th class="p-4 text-right">Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body" class="text-sm divide-y divide-gray-100">
-                    <tr class="hover:bg-blue-50 transition">
-                        <td class="p-4 text-gray-500">20/01 14:30</td>
-                        <td class="p-4">
-                            <p class="font-bold text-gray-800">Stanrley Roger</p>
-                            <span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded">Presbítero</span>
-                        </td>
-                        <td class="p-4">Consagração</td>
-                        <td class="p-4">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                                <span class="ai-score-high">98% Match</span>
-                            </div>
-                        </td>
-                        <td class="p-4 text-right">
-                            <button onclick="openAnalyzeModal(1)" class="bg-blue-900 text-white px-4 py-2 rounded shadow hover:bg-blue-800 text-xs font-bold">ANALISAR</button>
-                        </td>
-                    </tr>
-                    <tr class="hover:bg-blue-50 transition">
-                        <td class="p-4 text-gray-500">20/01 15:10</td>
-                        <td class="p-4">
-                            <p class="font-bold text-gray-800">Julia Melo Santos</p>
-                            <span class="text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded">Membro</span>
-                        </td>
-                        <td class="p-4">Público Geral</td>
-                        <td class="p-4">
-                            <div class="flex items-center gap-2">
-                                <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
-                                <span class="text-yellow-600 font-bold">Validar Pagto</span>
-                            </div>
-                        </td>
-                        <td class="p-4 text-right">
-                            <button onclick="openAnalyzeModal(2)" class="bg-blue-900 text-white px-4 py-2 rounded shadow hover:bg-blue-800 text-xs font-bold">ANALISAR</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
     </div>
 
-    <div id="modalAnalyze" class="modal-analise flex" style="display:none;">
-        <div class="bg-white w-full max-w-6xl h-[90vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative">
-            
+    <div id="modalAnalyze" class="modal-analise">
+        <div class="bg-white w-full max-w-7xl h-[95vh] rounded-2xl overflow-hidden flex flex-col shadow-2xl relative">
             <div class="bg-blue-900 text-white p-4 flex justify-between items-center">
-                <div>
-                    <h3 class="font-bold text-lg"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>Análise de Cadastro #2125</h3>
-                    <p class="text-xs text-blue-200">Stanrley Roger - Candidato a Presbítero</p>
-                </div>
-                <button onclick="closeModal()" class="text-gray-300 hover:text-white"><i class="fa-solid fa-xmark text-2xl"></i></button>
+                <div><h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-magnifying-glass-chart"></i> Análise <span id="modalId" class="bg-blue-800 px-2 rounded text-xs">#000</span></h3><p class="text-xs text-blue-200" id="modalSubtitle">...</p></div>
+                <button onclick="closeModal()" class="text-gray-300 hover:text-white p-2"><i class="fa-solid fa-xmark text-2xl"></i></button>
             </div>
-
-            <div class="flex flex-1 overflow-hidden">
-                
-                <div class="w-1/3 p-6 overflow-y-auto bg-gray-50 border-r">
-                    <h4 class="font-bold text-gray-700 mb-4 border-b pb-2">Dados Declarados</h4>
+            <div class="flex flex-col md:flex-row flex-1 overflow-hidden">
+                <div class="w-full md:w-1/3 p-6 overflow-y-auto bg-gray-50 border-r custom-scroll">
+                    <h4 class="font-bold text-gray-700 mb-4 border-b pb-2">Dados Cadastrais</h4>
+                    <div class="space-y-4 text-sm" id="modalDataContent"></div>
                     
-                    <div class="space-y-4 text-sm">
-                        <div>
-                            <span class="block text-xs text-gray-500 uppercase">Nome Completo</span>
-                            <div class="font-bold text-gray-800 p-2 bg-white border rounded">Stanrley Roger de Abreu Castro</div>
+                    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+                        <div class="flex justify-between items-center mb-3">
+                            <h5 class="text-xs font-bold text-blue-800 flex items-center gap-2"><i class="fa-solid fa-microchip"></i> Auditoria IA (Google Vision)</h5>
+                            <button id="btnRunIA" class="text-[10px] bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition shadow">RODAR ANÁLISE</button>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <span class="block text-xs text-gray-500 uppercase">CPF</span>
-                                <div class="font-bold text-gray-800 p-2 bg-white border rounded">357.745.158-00</div>
-                            </div>
-                            <div>
-                                <span class="block text-xs text-gray-500 uppercase">RG</span>
-                                <div class="font-bold text-gray-800 p-2 bg-white border rounded">41.947.104-2</div>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="block text-xs text-gray-500 uppercase">Igreja / Ministério</span>
-                            <div class="font-bold text-gray-800 p-2 bg-white border rounded">ADSA Brasil - Jd. Cipó</div>
-                        </div>
-                        
-                        <div class="mt-6 bg-blue-50 border border-blue-200 rounded p-3">
-                            <h5 class="text-xs font-bold text-blue-800 mb-2"><i class="fa-solid fa-robot mr-1"></i> Análise Automática (IA)</h5>
-                            <div class="flex justify-between items-center text-xs mb-1">
-                                <span>Nome na Receita:</span> <span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Confere</span>
-                            </div>
-                            <div class="flex justify-between items-center text-xs mb-1">
-                                <span>Antecedentes:</span> <span class="text-green-600 font-bold"><i class="fa-solid fa-check"></i> Nada Consta</span>
-                            </div>
-                            <div class="flex justify-between items-center text-xs">
-                                <span>Foto x Doc:</span> <span class="text-green-600 font-bold">98% Semelhança</span>
-                            </div>
+                        <div class="space-y-1 bg-white p-2 rounded border h-32 overflow-y-auto custom-scroll" id="iaContainer">
+                             <div class="text-gray-400 text-xs text-center py-2">Nenhuma análise avançada realizada.</div>
                         </div>
                     </div>
                 </div>
-
-                <div class="w-2/3 p-6 overflow-y-auto bg-gray-800 flex flex-col items-center">
-                    
-                    <div class="flex gap-2 mb-4">
-                        <button class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-bold hover:bg-blue-500">Foto Rosto</button>
-                        <button class="px-4 py-2 bg-gray-700 text-gray-300 rounded text-sm hover:bg-gray-600">RG (Frente)</button>
-                        <button class="px-4 py-2 bg-gray-700 text-gray-300 rounded text-sm hover:bg-gray-600">Antecedentes</button>
-                        <button class="px-4 py-2 bg-gray-700 text-gray-300 rounded text-sm hover:bg-gray-600">Comp. Teologia</button>
+                <div class="w-full md:w-2/3 p-4 bg-gray-900 flex flex-col">
+                    <div class="flex gap-2 mb-4 overflow-x-auto pb-2" id="docTabs"></div>
+                    <div class="doc-preview flex-1 border border-gray-700 relative group">
+                        <img id="docImage" src="" class="max-w-full max-h-full object-contain" onerror="this.src='https://placehold.co/600x400?text=Erro+no+Link'">
                     </div>
-
-                    <div class="doc-preview w-full max-w-2xl aspect-[3/4] border-4 border-white shadow-2xl relative group">
-                        <img src="https://nextrisedev.github.io/AGE2026/ASSETS/FOTOCRED1.png" class="w-full h-full object-cover">
-                        
-                        <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition cursor-zoom-in">
-                            <span class="text-white font-bold"><i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar</span>
-                        </div>
-                    </div>
-
                 </div>
             </div>
-
             <div class="p-4 border-t bg-gray-50 flex justify-between items-center">
-                <button class="text-red-600 font-bold text-sm hover:underline">Rejeitar com Motivo...</button>
+                <button onclick="rejeitarCadastro()" class="text-red-600 font-bold text-sm hover:underline px-4">Rejeitar</button>
                 <div class="flex gap-3">
-                    <button class="px-4 py-2 bg-gray-200 text-gray-700 rounded font-bold hover:bg-gray-300">Próximo</button>
-                    <button onclick="aprovarCadastro()" class="px-6 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 shadow-lg flex items-center gap-2">
-                        <i class="fa-solid fa-check-circle"></i> APROVAR & ENVIAR VOUCHER
-                    </button>
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded font-bold hover:bg-gray-300">Cancelar</button>
+                    <button onclick="aprovarCadastro()" id="btnAprovar" class="px-6 py-2 bg-green-600 text-white rounded font-bold hover:bg-green-700 shadow-lg flex items-center gap-2"><i class="fa-solid fa-check-circle"></i> APROVAR</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // CONFIGURAÇÃO
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxFrFjamzbq5ogR5xCfW3MaK1kNfB2F2Wc7dvlvBL2wfzeXvC52eAMHvUSHczGZ_-_imQ/exec'; 
+        
+        let dbCache = []; 
+        let currentModalId = null;
+        let currentUser = null;
+        let usersCache = []; 
+        let currentViewContext = 'dashboard'; // Rastreia a aba ativa (dashboard, aprovados, reprovados)
+
+        // --- AUTH ---
+        async function realizarLogin(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Validando...';
+            btn.disabled = true;
+
+            const email = document.getElementById('emailLogin').value;
+            const senha = document.getElementById('senhaLogin').value;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'login', email: email, senha: senha })
+                });
+                const res = await response.json();
+
+                if (res.status === 'success') {
+                    localStorage.setItem('conadibe_user', JSON.stringify(res.user));
+                    iniciarSessao(res.user);
+                } else {
+                    document.getElementById('loginMsg').innerText = res.message;
+                    btn.innerHTML = 'ENTRAR NO SISTEMA';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert("Erro de conexão: " + err);
+                btn.disabled = false;
+            }
+        }
+
+        async function recuperarSenha() {
+            const email = document.getElementById('recoverEmail').value;
+            if(!email) return alert("Digite seu e-mail.");
+            
+            const btn = document.getElementById('btnRecuperarEnvio');
+            const originalText = btn.innerText;
+            btn.innerText = 'ENVIANDO...'; 
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'recoverPassword', email: email })
+                });
+                const res = await response.json();
+                
+                if (res.status === 'success') {
+                    alert("✅ E-MAIL ENVIADO!\n" + res.message);
+                    document.getElementById('modalRecover').style.display = 'none';
+                    document.getElementById('recoverEmail').value = ''; 
+                } else {
+                    alert("⚠️ ERRO:\n" + res.message);
+                }
+            } catch (e) {
+                alert("Erro de conexão com o servidor:\n" + e.message);
+            } finally {
+                if(btn) {
+                    btn.innerText = originalText; 
+                    btn.disabled = false;
+                }
+            }
+        }
+
+        function iniciarSessao(user) {
+            currentUser = user;
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('userNameDisplay').innerText = user.name.split(' ')[0];
+            document.getElementById('userInitial').innerText = user.name.charAt(0).toUpperCase();
+            
+            const menuUsers = document.getElementById('menuUsersBtn');
+            if (user.role === 'MASTER') menuUsers.classList.remove('hidden');
+            else menuUsers.classList.add('hidden');
+
+            carregarDados();
+        }
+
+        function logout() {
+            localStorage.removeItem('conadibe_user');
+            location.reload();
+        }
+
+        // --- DADOS E CACHE ---
+        async function carregarDados(forceUpdate = false) {
+            const tbody = document.getElementById('table-body');
+            const localData = sessionStorage.getItem('conadibe_db_cache');
+            
+            if (localData && !forceUpdate) {
+                dbCache = JSON.parse(localData);
+                processarDadosParaTabela(dbCache);
+                return;
+            }
+
+            tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center"><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando dados...</td></tr>';
+            
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getDataAdmin`);
+                const data = await response.json();
+                
+                sessionStorage.setItem('conadibe_db_cache', JSON.stringify(data)); 
+                dbCache = data;
+                processarDadosParaTabela(data);
+                
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Erro ao carregar dados.</td></tr>';
+            }
+        }
+
+        function processarDadosParaTabela(dados) {
+            atualizarStats(dados);
+            const pendentes = dados.filter(i => i.status === 'EM ANÁLISE' || i.status === 'PENDENTE');
+            renderTableRows(pendentes);
+        }
+
+        function renderTableRows(lista) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            if(lista.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">Nenhum registro encontrado.</td></tr>';
+                return;
+            }
+
+            lista.forEach(item => {
+                let iaBadgeClass = 'bg-gray-100 text-gray-600';
+                let iaText = item.ia_score + '% Match';
+                if(item.ia_score >= 80) iaBadgeClass = 'bg-green-100 text-green-700';
+                else if(item.ia_score < 50) iaBadgeClass = 'bg-red-100 text-red-700';
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-blue-50 transition border-b border-gray-100">
+                        <td class="p-4 text-gray-500 whitespace-nowrap text-xs">
+                            ${item.data}<br>
+                            <span class="text-[10px] text-gray-400">ID: ${item.id}</span>
+                        </td>
+                        <td class="p-4">
+                            <p class="font-bold text-gray-800">${item.nome}</p>
+                            <span class="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase font-bold">${item.cargo || '-'}</span>
+                        </td>
+                        <td class="p-4 text-gray-600 text-sm">${item.tipo || 'Cadastro'}</td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-1 rounded text-xs font-bold border ${iaBadgeClass}">
+                                    <i class="fa-solid fa-robot"></i> ${iaText}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <span class="text-xs font-bold uppercase py-1 px-2 rounded ${getStatusColor(item.status)}">${item.status}</span>
+                                <button onclick="openAnalyzeModal('${item.id}')" class="bg-blue-900 text-white px-3 py-1 rounded shadow hover:bg-blue-800 text-xs font-bold">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function getStatusColor(status) {
+            if(status === 'APROVADO') return 'bg-green-100 text-green-800';
+            if(status === 'REJEITADO') return 'bg-red-100 text-red-800';
+            return 'bg-yellow-100 text-yellow-800';
+        }
+
+        function atualizarStats(dados) {
+            document.getElementById('stat-pending').innerText = dados.filter(i => i.status.includes('ANÁLISE') || i.status.includes('PENDENTE')).length;
+            document.getElementById('count-pending').innerText = dados.filter(i => i.status.includes('ANÁLISE') || i.status.includes('PENDENTE')).length;
+            document.getElementById('stat-total').innerText = dados.length;
+        }
+
+        function switchView(viewName) {
+            if (viewName === 'users') {
+                document.getElementById('view-dashboard').classList.add('hidden');
+                document.getElementById('view-users').classList.remove('hidden');
+                renderUserManagement();
+            } else {
+                document.getElementById('view-users').classList.add('hidden');
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                
+                currentViewContext = viewName;
+                document.getElementById('searchInput').value = '';
+                document.getElementById('filterCargo').value = '';
+                filterTable();
+                
+                if(viewName === 'aprovados') {
+                    document.getElementById('tableTitle').innerHTML = '<i class="fa-solid fa-check-double text-green-600"></i> Histórico de Aprovados';
+                } 
+                else if(viewName === 'reprovados') {
+                    document.getElementById('tableTitle').innerHTML = '<i class="fa-solid fa-ban text-red-600"></i> Cadastros Reprovados';
+                }
+                else if(viewName === 'dashboard') {
+                    document.getElementById('tableTitle').innerText = "Fila de Aprovação";
+                    processarDadosParaTabela(dbCache);
+                }
+            }
+            toggleMenu();
+        }
+
+        async function renderUserManagement() {
+            const container = document.getElementById('view-users');
+            container.innerHTML = `
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Gestão de Acesso</h2>
+                        <div class="flex gap-2 mt-2 text-sm">
+                            <button onclick="filterUsers('ATIVO')" class="text-blue-600 font-bold border-b-2 border-blue-600">Ativos</button>
+                            <button onclick="filterUsers('INATIVO')" class="text-gray-500 hover:text-blue-600">Inativos</button>
+                            <button onclick="filterUsers('TODOS')" class="text-gray-500 hover:text-blue-600">Todos</button>
+                        </div>
+                    </div>
+                    <button onclick="document.getElementById('modalNewUser').style.display='flex'" class="bg-blue-900 text-white px-4 py-2 rounded font-bold hover:bg-blue-800"><i class="fa-solid fa-plus"></i> Novo</button>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-sm p-4 overflow-x-auto" id="usersListContainer">Carregando...</div>
+                
+                <div id="modalNewUser" class="modal-analise">
+                    <div class="bg-white rounded-xl p-6 w-full max-w-md relative">
+                        <button onclick="document.getElementById('modalNewUser').style.display='none'" class="absolute top-4 right-4"><i class="fa-solid fa-xmark"></i></button>
+                        <h3 class="font-bold text-lg mb-4">Novo Usuário</h3>
+                        <form onsubmit="salvarUsuario(event)" class="space-y-3">
+                            <input id="newNome" class="w-full border p-2 rounded" placeholder="Nome" required>
+                            <input id="newEmail" class="w-full border p-2 rounded" placeholder="E-mail" required>
+                            <input id="newPass" class="w-full border p-2 rounded" placeholder="Senha" required>
+                            <select id="newRole" class="w-full border p-2 rounded bg-white"><option value="COORDENADOR">Coordenador</option><option value="MASTER">Master</option></select>
+                            <button type="submit" class="w-full bg-green-600 text-white p-2 rounded font-bold">CRIAR</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            const res = await fetch(`${SCRIPT_URL}?action=getUsers`);
+            usersCache = await res.json();
+            renderUsersTable(usersCache.filter(u => u.status === 'ATIVO')); // Default Ativos
+        }
+
+        function filterUsers(filter) {
+            let filtered = usersCache;
+            if (filter !== 'TODOS') filtered = usersCache.filter(u => u.status === filter);
+            renderUsersTable(filtered);
+        }
+
+        function renderUsersTable(users) {
+            let html = '<table class="w-full text-left text-sm min-w-[600px]"><thead><tr class="text-gray-500 border-b"><th>Nome</th><th>E-mail</th><th>Função</th><th>Status</th><th class="text-right">Ação</th></tr></thead><tbody>';
+            if (users.length === 0) html += '<tr><td colspan="5" class="p-4 text-center text-gray-400">Nenhum usuário encontrado.</td></tr>';
+
+            users.forEach(u => {
+                const isActive = u.status === 'ATIVO';
+                const actionBtn = isActive 
+                    ? `<button onclick="alterarStatusUsuario('${u.email}', 'INATIVO')" class="text-red-400 hover:text-red-600" title="Inativar"><i class="fa-solid fa-trash"></i></button>`
+                    : `<button onclick="alterarStatusUsuario('${u.email}', 'ATIVO')" class="text-green-500 hover:text-green-700" title="Reativar"><i class="fa-solid fa-rotate-left"></i></button>`;
+
+                html += `<tr class="border-b hover:bg-gray-50">
+                    <td class="p-3 font-bold">${u.name}</td>
+                    <td class="p-3 text-gray-500">${u.email}</td>
+                    <td class="p-3"><span class="bg-blue-100 text-blue-800 px-2 rounded text-xs">${u.role}</span></td>
+                    <td class="p-3"><span class="${isActive ? 'text-green-600' : 'text-red-500'} font-bold text-xs">● ${u.status}</span></td>
+                    <td class="p-3 text-right">
+                        ${u.role !== 'MASTER' ? actionBtn : ''}
+                    </td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('usersListContainer').innerHTML = html;
+        }
+
+        async function salvarUsuario(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            btn.innerText = 'Salvando...'; btn.disabled = true;
+            
+            const payload = {
+                action: 'createUser',
+                newUserName: document.getElementById('newNome').value,
+                newUserEmail: document.getElementById('newEmail').value,
+                newUserPass: document.getElementById('newPass').value,
+                newUserRole: document.getElementById('newRole').value
+            };
+
+            const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const data = await res.json();
+            
+            alert(data.message);
+            if(data.status === 'success') {
+                document.getElementById('modalNewUser').style.display='none';
+                renderUserManagement();
+            }
+            btn.innerText = 'CRIAR'; btn.disabled = false;
+        }
+
+        async function alterarStatusUsuario(email, novoStatus) {
+            if(!confirm(`Deseja alterar o status de ${email} para ${novoStatus}?`)) return;
+            const action = novoStatus === 'ATIVO' ? 'reactivateUser' : 'inactivateUser';
+            try {
+                const res = await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify({ action: action, email: email }) 
+                });
+                const data = await res.json();
+                alert(data.message);
+                renderUserManagement(); 
+            } catch(e) { alert("Erro ao atualizar status."); }
+        }
+
+        // --- MODAL DE ANÁLISE ---
         function openAnalyzeModal(id) {
+            const registro = dbCache.find(i => i.id === id);
+            if (!registro) return;
+            currentModalId = id;
+            document.getElementById('modalId').innerText = "#" + id;
+            document.getElementById('modalSubtitle').innerText = registro.nome;
+            
+            // Renderiza Dados Cadastrais
+            let html = `<div class="grid gap-2 text-xs">`;
+            for (const [key, value] of Object.entries(registro)) {
+                if(key !== 'docs' && key !== 'id' && typeof value !== 'object' && key !== 'ia_detalhes' && key !== 'ia_score') {
+                    html += `<div class="border-b pb-1"><span class="text-gray-500 uppercase">${key}:</span> <span class="font-bold">${value}</span></div>`;
+                }
+            }
+            html += `</div>`;
+            document.getElementById('modalDataContent').innerHTML = html;
+
+            // --- RENDERIZA ÁREA DA IA (NOVO) ---
+            const iaContainer = document.getElementById('iaContainer');
+            const btnIA = document.getElementById('btnRunIA');
+            
+            // Reset do botão para garantir que pegue o ID novo
+            btnIA.onclick = () => runCloudIA(id);
+            btnIA.disabled = false;
+            btnIA.innerText = "RODAR ANÁLISE";
+
+            if (registro.ia_detalhes && Array.isArray(registro.ia_detalhes) && registro.ia_detalhes.length > 0) {
+                let logHtml = '';
+                registro.ia_detalhes.forEach(log => {
+                    let color = 'text-gray-600';
+                    if(log.includes('✅')) color = 'text-green-700 font-bold';
+                    if(log.includes('🚫') || log.includes('⚠️')) color = 'text-red-600 font-bold';
+                    logHtml += `<div class="${color} text-[10px] border-b border-gray-100 py-1">${log}</div>`;
+                });
+                iaContainer.innerHTML = logHtml;
+            } else {
+                iaContainer.innerHTML = '<div class="text-gray-400 text-xs text-center py-2">Nenhuma análise avançada realizada.</div>';
+            }
+
+            // --- AREA DE DOCUMENTOS ---
+            const tabs = document.getElementById('docTabs');
+            tabs.innerHTML = '';
+            const imgPreview = document.getElementById('docImage');
+            const previewContainer = document.querySelector('.doc-preview');
+            
+            imgPreview.style.display = 'block';
+            imgPreview.src = ''; 
+            const oldErrBtn = document.getElementById('btnOpenExt');
+            if(oldErrBtn) oldErrBtn.remove();
+
+            // Tratamento ROBUSTO do JSON e URL (Thumbnail)
+            const formatDriveLink = (url) => {
+                if(!url) return '';
+                const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1000`;
+                }
+                return url;
+            };
+
+            let docsObj = registro.docs;
+            if (typeof docsObj === 'string') {
+                try { docsObj = JSON.parse(docsObj); } catch(e) { console.error("Bad JSON", e); docsObj = {}; }
+            }
+
+            const setPreview = (url, originalLink) => {
+                const existingBtn = document.getElementById('btnOpenExt');
+                if(existingBtn) existingBtn.remove();
+                
+                imgPreview.style.display = 'block';
+                imgPreview.src = url;
+                
+                imgPreview.onerror = function() {
+                    this.style.display = 'none'; 
+                    if (!document.getElementById('btnOpenExt')) {
+                        const btn = document.createElement('a');
+                        btn.id = 'btnOpenExt';
+                        btn.href = originalLink || url; 
+                        btn.target = '_blank';
+                        btn.className = "absolute flex flex-col items-center justify-center text-gray-400 hover:text-white transition";
+                        btn.innerHTML = `<i class="fa-solid fa-arrow-up-right-from-square text-4xl mb-2"></i><span class="text-xs">Não foi possível visualizar.<br>Clique para abrir no Drive.</span>`;
+                        previewContainer.appendChild(btn);
+                    }
+                };
+            };
+
+            function createDocButton(label, urlOriginal, isPriority) {
+                const btn = document.createElement('button');
+                const baseClass = "px-3 py-1 rounded text-xs whitespace-nowrap transition ";
+                btn.className = baseClass + (isPriority ? "bg-blue-600 text-white hover:bg-blue-500 font-bold" : "bg-gray-700 text-gray-300 hover:bg-gray-600");
+                btn.innerText = label;
+                const thumbUrl = formatDriveLink(urlOriginal);
+                btn.onclick = () => setPreview(thumbUrl, urlOriginal); 
+                tabs.appendChild(btn);
+                return { thumbUrl, urlOriginal };
+            }
+
+            const docsPrioritarios = [
+                { key: 'biometria_facial', label: 'Rosto' },
+                { key: 'rg_frente', label: 'RG (Frente)' },
+                { key: 'rg_verso', label: 'RG (Verso)' },
+                { key: 'foto_credencial', label: 'Credencial' } 
+            ];
+            
+            if(docsObj) {
+                let firstImageSet = false;
+                docsPrioritarios.forEach(doc => {
+                    if (docsObj[doc.key]) {
+                        const urls = createDocButton(doc.label, docsObj[doc.key], true);
+                        if (!firstImageSet) { setPreview(urls.thumbUrl, urls.urlOriginal); firstImageSet = true; }
+                    }
+                });
+                
+                Object.entries(docsObj).forEach(([k, v]) => {
+                    if (docsPrioritarios.some(d => d.key === k)) return;
+                    const urls = createDocButton(k.replace('doc_', '').toUpperCase(), v, false);
+                    if (!firstImageSet) { setPreview(urls.thumbUrl, urls.urlOriginal); firstImageSet = true; }
+                });
+            }
+            
             document.getElementById('modalAnalyze').style.display = 'flex';
         }
-        function closeModal() {
-            document.getElementById('modalAnalyze').style.display = 'none';
+
+        // --- FUNÇÃO PARA RODAR A IA REAL (NOVO) ---
+        async function runCloudIA(id) {
+            const btn = document.getElementById('btnRunIA');
+            const container = document.getElementById('iaContainer');
+            const originalText = btn.innerText;
+            
+            btn.innerText = 'PROCESSANDO...';
+            btn.disabled = true;
+            container.innerHTML = '<div class="text-center py-4 text-blue-600"><i class="fa-solid fa-circle-notch fa-spin"></i> Conectando Google Vision API...<br>Lendo documentos...</div>';
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'runRealAI', id: id })
+                });
+                const res = await response.json();
+
+                if(res.status === 'success') {
+                    // Update Cache
+                    const index = dbCache.findIndex(i => i.id === id);
+                    if(index !== -1) {
+                        dbCache[index].ia_score = res.data.score;
+                        dbCache[index].ia_detalhes = res.data.detalhes;
+                    }
+                    // Re-render Log
+                    let logHtml = '';
+                    res.data.detalhes.forEach(log => {
+                        let color = 'text-gray-600';
+                        if(log.includes('✅')) color = 'text-green-700 font-bold';
+                        if(log.includes('🚫') || log.includes('⚠️')) color = 'text-red-600 font-bold';
+                        logHtml += `<div class="${color} text-[10px] border-b border-gray-100 py-1">${log}</div>`;
+                    });
+                    container.innerHTML = logHtml;
+                    filterTable(); // Atualiza tabela de fundo
+                } else {
+                    container.innerHTML = `<div class="text-red-500 font-bold text-xs">Erro: ${res.message}</div>`;
+                }
+            } catch (e) {
+                container.innerHTML = `<div class="text-red-500 font-bold text-xs">Erro de conexão.</div>`;
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         }
 
-        function aprovarCadastro() {
-            // LÓGICA DO BACKEND AQUI
-            // 1. Atualiza Status na Planilha
-            // 2. Gera Token Unico (Ex: CON-2125-XJ9)
-            // 3. Dispara E-mail com Link: conadibe.org/checkin?token=CON-2125-XJ9
-            
-            const btn = document.querySelector('button[onclick="aprovarCadastro()"]');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
-            
-            setTimeout(() => {
-                alert("✅ Cadastro Aprovado!\n\nE-mail enviado para o candidato com o Token de Acesso para escolha do assento.");
-                closeModal();
-                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> APROVAR & ENVIAR VOUCHER';
-            }, 2000);
+        function closeModal() { document.getElementById('modalAnalyze').style.display = 'none'; }
+        function toggleMenu() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('overlayMenu').classList.toggle('active'); }
+        function filterTable() { 
+            const termo = document.getElementById('searchInput').value.toLowerCase();
+            const cargoFiltro = document.getElementById('filterCargo').value;
+            let baseData = [];
+            if (currentViewContext === 'aprovados') baseData = dbCache.filter(i => i.status === 'APROVADO');
+            else if (currentViewContext === 'reprovados') baseData = dbCache.filter(i => i.status === 'REJEITADO');
+            else baseData = dbCache.filter(i => i.status === 'EM ANÁLISE' || i.status === 'PENDENTE');
+
+            if (cargoFiltro) baseData = baseData.filter(i => i.cargo && i.cargo.toLowerCase().includes(cargoFiltro.toLowerCase()));
+            if (termo) baseData = baseData.filter(i => i.nome.toLowerCase().includes(termo) || (i.id && i.id.toLowerCase().includes(termo)) || (i.cpf && i.cpf.includes(termo)));
+
+            renderTableRows(baseData);
         }
 
-        // Cache Simulado
-        function filterTable() {
-            // Lógica simples de filtro JS
+        async function aprovarCadastro() {
+            const btn = document.getElementById('btnAprovar');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processando...'; btn.disabled = true;
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'approveUser', id: currentModalId }) });
+                const res = await response.json();
+                if(res.status === 'success') { alert("✅ " + res.message); closeModal(); carregarDados(true); } else { alert("Erro: " + res.message); }
+            } catch (e) { alert("Erro de conexão."); } finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
+
+        async function rejeitarCadastro() {
+            const motivo = prompt("Motivo da rejeição:");
+            if (!motivo) return;
+            try {
+                const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'rejectUser', id: currentModalId, motivo: motivo }) });
+                const res = await response.json();
+                if(res.status === 'success') { alert("🚫 Cadastro Rejeitado."); closeModal(); carregarDados(true); }
+            } catch (e) { alert("Erro ao rejeitar."); }
+        };
     </script>
 </body>
 </html>
