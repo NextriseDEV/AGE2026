@@ -3,158 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Check-in e Assento - CONADIBE</title>
+    <title>Check-in Digital - CONADIBE 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        .seat-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; max-width: 600px; margin: 0 auto; }
-        .seat {
-            height: 40px; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white;
-        }
-        .seat.available { background-color: #e2e8f0; color: #64748b; border: 1px solid #cbd5e1; }
-        .seat.available:hover { background-color: #3b82f6; color: white; transform: scale(1.1); }
-        .seat.selected { background-color: #d4a017; color: white; border: 2px solid #b45309; box-shadow: 0 0 10px rgba(212, 160, 23, 0.5); }
-        .seat.taken { background-color: #cbd5e1; color: #94a3b8; cursor: not-allowed; opacity: 0.5; }
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
         
-        /* Modal de Bloqueio (Ampulheta) */
-        .modal-lock { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; justify-content: center; items-center; flex-direction: column; color: white; }
+        /* Seat Map Styles */
+        .seat-grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; max-width: 400px; margin: 0 auto; }
+        .seat {
+            aspect-ratio: 1/1; border-radius: 6px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: white;
+            position: relative;
+        }
+        /* Topo curvo do assento */
+        .seat::before { content:''; position: absolute; top: -3px; left: 10%; width: 80%; height: 4px; background: inherit; border-radius: 4px 4px 0 0; opacity: 0.8; }
+        
+        .seat.available { background-color: #cbd5e1; color: #64748b; }
+        .seat.available:hover { background-color: #3b82f6; color: white; transform: translateY(-2px); }
+        .seat.selected { background-color: #d4a017; color: white; border: 2px solid #b45309; box-shadow: 0 0 10px rgba(212, 160, 23, 0.5); z-index: 10; }
+        .seat.taken { background-color: #e2e8f0; color: #cbd5e1; cursor: not-allowed; }
+        .seat.taken::after { content: 'X'; font-size: 14px; position: absolute; }
+
+        /* Credential Styles (Padrão Impresso) */
+        #credential-node {
+            width: 350px; height: 500px; 
+            background: linear-gradient(135deg, #0d2d5a 0%, #1e40af 100%);
+            position: relative; overflow: hidden; color: white;
+            font-family: 'Arial', sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .cred-header { width: 100%; padding: 20px; text-align: center; background: rgba(0,0,0,0.2); border-bottom: 2px solid #d4a017; }
+        .cred-photo-container { 
+            width: 120px; height: 120px; margin-top: 20px; 
+            border: 4px solid #d4a017; border-radius: 50%; overflow: hidden; background: white;
+        }
+        .cred-photo { width: 100%; height: 100%; object-fit: cover; }
+        .cred-body { text-align: center; flex: 1; padding: 10px; width: 100%; }
+        .cred-name { font-size: 22px; font-weight: bold; text-transform: uppercase; margin-top: 10px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .cred-role { font-size: 14px; color: #d4a017; font-weight: bold; margin-bottom: 15px; letter-spacing: 1px; text-transform: uppercase; }
+        .cred-footer { 
+            background: white; width: 100%; padding: 15px; 
+            display: flex; justify-content: space-between; align-items: center; color: #0d2d5a; 
+            border-top: 4px solid #d4a017;
+        }
+        .cred-sector-box { text-align: left; }
+        .cred-sector-big { font-size: 32px; font-weight: 800; line-height: 1; }
+        .cred-label { font-size: 10px; text-transform: uppercase; color: #666; font-weight: bold; }
+        .cred-qr { width: 80px; height: 80px; }
+
+        /* Watermark */
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 80px; font-weight: bold; color: rgba(255,255,255,0.03); white-space: nowrap; pointer-events: none; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center py-10">
+<body class="flex flex-col min-h-screen">
 
-    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="bg-blue-900 p-6 text-white flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold">Escolha seu Lugar</h1>
-                <p class="text-sm opacity-80">Olá, Pr. Stanrley. Seu setor designado é: <strong class="text-yellow-400">SETOR A (Nave)</strong></p>
+    <div id="screen-login" class="flex-grow flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md text-center">
+            <div class="w-20 h-20 bg-blue-100 text-blue-900 rounded-full flex items-center justify-center text-3xl mx-auto mb-6">
+                <i class="fa-solid fa-ticket"></i>
             </div>
-            <div class="text-right">
-                <p class="text-xs">Evento em:</p>
-                <p class="font-bold text-lg">05 JUL 2026</p>
-            </div>
-        </div>
-
-        <div class="p-8 flex flex-col md:flex-row gap-8">
+            <h1 class="text-2xl font-bold text-gray-800">Check-in Digital</h1>
+            <p class="text-gray-500 text-sm mb-6">Digite seu Protocolo de Inscrição para acessar seu assento.</p>
             
-            <div class="flex-1">
-                <div class="w-full bg-gray-200 h-12 rounded-lg mb-8 flex items-center justify-center text-gray-500 font-bold shadow-inner">
-                    PÚLPITO / ALTAR
+            <form onsubmit="validarToken(event)">
+                <input type="text" id="tokenInput" class="w-full p-4 border-2 border-gray-200 rounded-xl text-center text-xl font-bold tracking-widest uppercase focus:border-blue-900 outline-none mb-4" placeholder="MIN-0000..." required>
+                <button type="submit" id="btnLogin" class="w-full bg-blue-900 text-white font-bold py-4 rounded-xl hover:bg-blue-800 transition shadow-lg">
+                    ACESSAR <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </form>
+            <p id="loginError" class="text-red-500 text-sm font-bold mt-4 min-h-[20px]"></p>
+        </div>
+    </div>
+
+    <div id="screen-selection" class="hidden flex-grow flex flex-col items-center py-8 px-4">
+        <div class="w-full max-w-4xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+            <div class="flex-1 p-6 bg-gray-50 border-r border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-bold text-gray-700"><i class="fa-solid fa-map-location-dot"></i> Mapa de Assentos</h2>
+                    <span id="sectorDisplay" class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-bold">SETOR A</span>
                 </div>
                 
+                <div class="w-full bg-gray-300 h-8 rounded mb-8 flex items-center justify-center text-[10px] text-gray-600 font-bold shadow-inner tracking-widest">
+                    PÚLPITO / PALCO
+                </div>
+
                 <div class="seat-grid" id="seatMap">
                     </div>
 
-                <div class="flex justify-center gap-4 mt-6 text-sm">
-                    <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-200 border rounded"></div> Livre</div>
-                    <div class="flex items-center gap-2"><div class="w-4 h-4 bg-yellow-500 rounded"></div> Selecionado</div>
-                    <div class="flex items-center gap-2"><div class="w-4 h-4 bg-gray-300 opacity-50 rounded"></div> Ocupado</div>
+                <div class="flex justify-center gap-4 mt-8 text-xs font-medium text-gray-500">
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-cbd5e1 rounded bg-gray-400"></div> Livre</div>
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-yellow-500 rounded"></div> Seu</div>
+                    <div class="flex items-center gap-1"><div class="w-3 h-3 bg-gray-200 border rounded"></div> Ocupado</div>
                 </div>
             </div>
 
-            <div class="w-full md:w-80 bg-gray-50 p-6 rounded-xl border border-gray-200 h-fit">
-                <h3 class="font-bold text-gray-800 mb-4">Resumo do Check-in</h3>
-                
-                <div class="mb-4">
-                    <p class="text-xs text-gray-500 uppercase">Assento Selecionado</p>
-                    <p id="selectedSeatDisplay" class="text-3xl font-bold text-blue-900">--</p>
+            <div class="w-full md:w-80 p-8 flex flex-col justify-center bg-white relative">
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 mx-auto rounded-full bg-gray-100 border-2 border-blue-900 overflow-hidden mb-3">
+                        <img id="userPhoto" src="" class="w-full h-full object-cover" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                    </div>
+                    <h3 class="font-bold text-gray-800" id="userName">Nome do Usuário</h3>
+                    <p class="text-xs text-blue-600 font-bold uppercase" id="userRole">Cargo</p>
                 </div>
 
-                <div class="mb-6">
-                    <p class="text-xs text-gray-500 uppercase">Titular</p>
-                    <p class="font-medium">Stanrley Roger</p>
-                    <p class="text-xs text-gray-400">CPF: ***.745.158-**</p>
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6 text-center">
+                    <p class="text-xs text-gray-500 uppercase font-bold">Assento Escolhido</p>
+                    <p id="selectedSeatDisplay" class="text-4xl font-black text-blue-900 my-1">--</p>
+                    <p class="text-[10px] text-gray-400">Clique no mapa para selecionar</p>
                 </div>
 
-                <button id="btnConfirm" onclick="confirmarAssento()" disabled class="w-full bg-gray-300 text-white font-bold py-4 rounded-xl transition cursor-not-allowed">
-                    CONFIRMAR & GERAR CREDENCIAL
+                <button id="btnConfirm" onclick="confirmarReserva()" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-xl transition cursor-not-allowed flex items-center justify-center gap-2">
+                    CONFIRMAR
                 </button>
-                <p class="text-xs text-gray-400 mt-2 text-center">Ao confirmar, o QR Code será gerado.</p>
             </div>
         </div>
     </div>
 
-    <div id="modalLock" class="modal-lock">
-        <div class="text-center">
-            <i class="fa-solid fa-hourglass-half fa-spin text-5xl text-yellow-500 mb-4"></i>
-            <h2 class="text-2xl font-bold">Verificando Disponibilidade...</h2>
-            <p class="text-gray-400 mt-2">Estamos garantindo seu lugar. Não feche esta janela.</p>
+    <div id="screen-credential" class="hidden flex-grow flex flex-col items-center justify-center p-4 bg-gray-800">
+        <h2 class="text-white text-2xl font-bold mb-4"><i class="fa-solid fa-check-circle text-green-500"></i> Tudo Pronto!</h2>
+        <p class="text-gray-300 text-sm mb-6 text-center max-w-md">Sua credencial foi gerada. Salve a imagem abaixo e apresente na entrada.</p>
+
+        <div id="credential-node">
+            <div class="watermark">AGE 2026</div>
+            <div class="cred-header">
+                <h1 style="font-size: 18px; font-weight: 800; letter-spacing: 2px;">CONADIBE</h1>
+                <p style="font-size: 10px; opacity: 0.8;">ASSEMBLEIA GERAL EXTRAORDINÁRIA 2026</p>
+            </div>
+            
+            <div class="cred-photo-container">
+                <img id="cred-img" src="" class="cred-photo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            </div>
+            
+            <div class="cred-body">
+                <div class="cred-name" id="cred-name">NOME DO MINISTRO</div>
+                <div class="cred-role" id="cred-role">CARGO ECLESIÁSTICO</div>
+                <div style="font-size: 10px; opacity: 0.7; margin-top: 20px;">05 A 09 DE JULHO DE 2026</div>
+            </div>
+
+            <div class="cred-footer">
+                <div class="cred-sector-box">
+                    <div class="cred-label">SETOR</div>
+                    <div class="cred-sector-big" id="cred-sector">A</div>
+                    <div class="cred-label" id="cred-seat">ASSENTO: --</div>
+                </div>
+                <div id="qrcode" class="cred-qr"></div>
+            </div>
         </div>
+
+        <div class="mt-8 flex gap-4">
+            <button onclick="baixarCredencial()" class="bg-yellow-500 text-blue-900 hover:bg-yellow-400 px-6 py-3 rounded-full font-bold shadow-lg transition flex items-center gap-2">
+                <i class="fa-solid fa-download"></i> BAIXAR IMAGEM
+            </button>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/90 z-50 hidden flex-col items-center justify-center text-white">
+        <i class="fa-solid fa-circle-notch fa-spin text-4xl text-yellow-500 mb-4"></i>
+        <p class="font-bold" id="loadingText">Processando...</p>
     </div>
 
     <script>
-        // --- 1. GERAÇÃO DO MAPA (Simulada) ---
-        const seatMap = document.getElementById('seatMap');
-        let selectedSeat = null;
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwpIz6v9kpdID1GaYAR87io3p5grPEWM1ToG-MXUlxTTDSS2Rr3eHathUkQK3OnK_0Xhw/exec'; 
+        // ⚠️ ATENÇÃO: Substitua pela URL do seu Script publicado
 
-        // Gera 100 assentos para exemplo
-        for (let i = 1; i <= 100; i++) {
-            const seat = document.createElement('div');
-            seat.className = 'seat available';
-            seat.innerText = 'A' + i;
-            seat.dataset.id = 'A' + i;
+        let userData = null;
+        let selectedSeatId = null;
+        let userToken = null;
+
+        // --- FUNÇÃO DE LOGIN CORRIGIDA ---
+    async function validarToken(e) {
+        e.preventDefault();
+        const token = document.getElementById('tokenInput').value.trim();
+        if(!token) return;
+
+        setLoading(true, "Buscando sua inscrição...");
+        userToken = token;
+
+        try {
+            // TRUQUE PARA EVITAR ERRO DE CONEXÃO/CORS NO GAS:
+            // 1. Usar method: 'POST'
+            // 2. Body deve ser stringify
+            // 3. NÃO enviar header 'Content-Type': 'application/json' (isso dispara preflight que falha)
+            // 4. Enviar como text/plain (o Google aceita e processamos com JSON.parse no backend)
             
-            // Simula alguns ocupados
-            if ([5, 12, 13, 45, 88].includes(i)) {
-                seat.className = 'seat taken';
-            }
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                redirect: 'follow', // Importante para seguir o redirect do Google
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8", 
+                },
+                body: JSON.stringify({ action: 'validateToken', token: token })
+            });
 
-            seat.onclick = () => selectSeat(seat);
-            seatMap.appendChild(seat);
+            const res = await response.json();
+
+            setLoading(false);
+
+            if (res.status === 'success') {
+                userData = res.data;
+                document.getElementById('screen-login').classList.add('hidden');
+                
+                if (res.mode === 'reprint') {
+                    renderizarCredencial(userData.assento);
+                } else {
+                    prepararSelecao(userData);
+                }
+            } else {
+                document.getElementById('loginError').innerText = res.message;
+            }
+        } catch (err) {
+            setLoading(false);
+            console.error(err);
+            alert("Erro de conexão. Verifique se o Token está correto e tente novamente.");
+        }
+    }
+
+        // --- 2. SELEÇÃO ---
+        function prepararSelecao(data) {
+            document.getElementById('screen-selection').classList.remove('hidden');
+            document.getElementById('screen-selection').classList.add('flex');
+            
+            // Preenche dados UI
+            document.getElementById('userName').innerText = data.nome.split(' ')[0] + ' ' + data.nome.split(' ').pop();
+            document.getElementById('userRole').innerText = data.cargo;
+            document.getElementById('sectorDisplay').innerText = "SETOR " + data.setor;
+            if(data.foto) document.getElementById('userPhoto').src = data.foto; // Assume que a foto vem pública ou proxy
+
+            renderizarMapa(data.ocupados, data.setor);
         }
 
-        function selectSeat(el) {
-            if (el.classList.contains('taken')) return;
+        function renderizarMapa(ocupados, setor) {
+            const grid = document.getElementById('seatMap');
+            grid.innerHTML = '';
+            
+            // Simula assentos baseados no setor (Ex: 64 assentos para demo)
+            const totalAssentos = 64; 
+            const prefixo = setor;
 
-            // Deseleciona anterior
-            document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected'));
+            for (let i = 1; i <= totalAssentos; i++) {
+                const id = `${prefixo}${i}`;
+                const el = document.createElement('div');
+                
+                if (ocupados.includes(id)) {
+                    el.className = 'seat taken';
+                    el.title = "Ocupado";
+                } else {
+                    el.className = 'seat available';
+                    el.innerText = i;
+                    el.onclick = () => selecionarAssento(el, id);
+                }
+                grid.appendChild(el);
+            }
+        }
+
+        function selecionarAssento(el, id) {
+            // Remove seleção anterior
+            document.querySelectorAll('.seat.selected').forEach(s => s.classList.remove('selected', 'available'));
+            document.querySelectorAll('.seat:not(.taken)').forEach(s => s.classList.add('available')); // Restaura estado
             
-            // Seleciona novo
+            // Aplica nova seleção
+            el.classList.remove('available');
             el.classList.add('selected');
-            selectedSeat = el.dataset.id;
             
-            // Atualiza UI
-            document.getElementById('selectedSeatDisplay').innerText = selectedSeat;
+            selectedSeatId = id;
+            document.getElementById('selectedSeatDisplay').innerText = id;
+            
             const btn = document.getElementById('btnConfirm');
             btn.disabled = false;
-            btn.classList.remove('bg-gray-300', 'cursor-not-allowed');
-            btn.classList.add('bg-green-600', 'hover:bg-green-700', 'shadow-lg');
+            btn.classList.remove('bg-gray-200', 'text-gray-400', 'cursor-not-allowed');
+            btn.classList.add('bg-blue-900', 'text-white', 'hover:bg-blue-800', 'shadow-lg');
         }
 
-        // --- 2. LÓGICA DE CONCORRÊNCIA (Simulação do Backend) ---
-        function confirmarAssento() {
-            if (!selectedSeat) return;
+        async function confirmarReserva() {
+        if(!selectedSeatId || !userToken) return;
+        setLoading(true, "Confirmando reserva...");
 
-            const modal = document.getElementById('modalLock');
-            modal.style.display = 'flex';
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                redirect: 'follow',
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ action: 'reserveSeat', token: userToken, assentoId: selectedSeatId })
+            });
+            const res = await response.json();
+            setLoading(false);
 
-            // SIMULAÇÃO DO REQUEST AO GOOGLE APPS SCRIPT
-            /*
-             * No Backend (Apps Script), usaríamos LockService:
-             * var lock = LockService.getScriptLock();
-             * if (lock.tryLock(5000)) { // Tenta travar por 5s
-             * // Verifica se assento ainda está livre na planilha
-             * // Se sim, escreve USER_ID
-             * // Se não, retorna erro "Assento acabou de ser ocupado"
-             * }
-             */
+            if (res.status === 'success') {
+                renderizarCredencial(selectedSeatId);
+            } else {
+                alert("Erro: " + res.message);
+            }
+        } catch (err) {
+            setLoading(false);
+            alert("Erro ao reservar.");
+        }
+    }
 
-            setTimeout(() => {
-                // Sucesso Simulado
-                modal.innerHTML = `
-                    <div class="text-center animate-bounce">
-                        <i class="fa-solid fa-check-circle text-6xl text-green-500 mb-4"></i>
-                        <h2 class="text-3xl font-bold">Sucesso!</h2>
-                        <p class="text-gray-300 mt-2">Assento ${selectedSeat} confirmado.</p>
-                        <p class="text-sm text-gray-400 mt-4">Enviando credencial para seu e-mail...</p>
-                    </div>
-                `;
-                
-                // Redireciona para download ou exibe credencial final
-                setTimeout(() => {
-                    alert("Redirecionando para sua Credencial PDF...");
-                }, 2000);
-            }, 2500); // Tempo fake de processamento
+
+        // --- 3. CREDENCIAL ---
+        function renderizarCredencial(assentoFinal) {
+            document.getElementById('screen-selection').classList.add('hidden');
+            document.getElementById('screen-selection').classList.remove('flex');
+            document.getElementById('screen-credential').classList.remove('hidden');
+            document.getElementById('screen-credential').classList.add('flex');
+
+            // Preenche Template
+            document.getElementById('cred-name').innerText = userData.nome;
+            document.getElementById('cred-role').innerText = userData.cargo;
+            document.getElementById('cred-sector').innerText = userData.setor;
+            document.getElementById('cred-seat').innerText = "ASSENTO: " + assentoFinal;
+            
+            // Proxy para foto (Google Drive geralmente bloqueia html2canvas por CORS)
+            // Solução ideal: Converter foto para Base64 no backend. 
+            // Para este MVP, se falhar, usa placeholder.
+            if(userData.foto) {
+                 // Tenta carregar. Se for drive, pode dar erro no canvas (tainted canvas).
+                 // Em produção, o backend deve enviar a imagem em Base64 na propriedade data.foto
+                 document.getElementById('cred-img').src = userData.foto;
+            }
+
+            // Gera QR Code
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), {
+                text: JSON.stringify({t: userToken, a: assentoFinal}),
+                width: 70,
+                height: 70,
+                colorDark : "#0d2d5a",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+
+        function baixarCredencial() {
+            const node = document.getElementById('credential-node');
+            
+            // html2canvas config
+            html2canvas(node, {
+                useCORS: true, // Importante para fotos externas
+                scale: 2 // Alta resolução
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Credencial_${userData.nome}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            }).catch(err => {
+                alert("Erro ao gerar imagem. Tente tirar um print da tela.");
+                console.error(err);
+            });
+        }
+
+        function setLoading(state, text) {
+            const el = document.getElementById('loadingOverlay');
+            if(state) {
+                document.getElementById('loadingText').innerText = text;
+                el.classList.remove('hidden');
+                el.classList.add('flex');
+            } else {
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            }
         }
     </script>
 </body>
