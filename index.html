@@ -25,7 +25,7 @@
         .fade-out { animation: fadeOut 0.5s forwards; }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
-        /* --- ANIMAÇÃO DO BOTÃO FLUTUANTE (NOVO) --- */
+        /* --- ANIMAÇÃO DO BOTÃO FLUTUANTE --- */
         @keyframes reveal-text {
             0%, 20% { max-width: 0; opacity: 0; margin-left: 0; }
             30%, 85% { max-width: 160px; opacity: 1; margin-left: 0.5rem; }
@@ -90,6 +90,13 @@
             <p class="text-gray-500">Selecione sua categoria para iniciar o credenciamento</p>
         </div>
 
+        <div class="w-full flex justify-center mb-10">
+            <a href="https://nextrisedev.github.io/AGE2026/checkin" 
+               class="bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 px-10 rounded-full shadow-xl transition transform hover:scale-105 flex items-center gap-3 border-4 border-green-100 animate-pulse">
+                <i class="fa-solid fa-qrcode text-2xl"></i> 
+                <span>JÁ SOU INSCRITO / FAZER CHECK-IN</span>
+            </a>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
             
             <a href="geral.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-400 flex flex-col items-center text-center">
@@ -104,7 +111,7 @@
             <a href="obreiros.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-600 flex flex-col items-center text-center relative overflow-hidden">
                 <div class="absolute top-0 right-0 bg-conadibe-blue text-white text-xs font-bold px-3 py-1 rounded-bl-lg">SETOR A</div>
                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                 </div>
                 <h2 class="text-xl font-bold text-gray-800">Obreiros</h2>
                 <p class="text-sm text-gray-500 mt-2">Diáconos(as) e Presbíteros para Consagração ou Reconhecimento.</p>
