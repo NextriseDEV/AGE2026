@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Solicitações | CONADIBE 2026</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+    .conadibe-blue { color: #0d2d5a; }
+    .bg-conadibe-blue { background-color: #0d2d5a; }
+    .conadibe-gold { color: #d4a017; }
+    .bg-conadibe-gold { background-color: #d4a017; }
+
+    .input-field { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; transition: 0.2s; font-size: 0.875rem; }
+    .input-field:focus { border-color: #0d2d5a; outline: none; box-shadow: 0 0 0 3px rgba(13,45,90,0.1); }
+
+    .fade-in { animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(6px);} to {opacity:1; transform:translateY(0);} }
+
+    .status-badge { font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; white-space: nowrap; }
+    .status-Recebido { background:#fef3c7; color:#92400e; }
+    .status-EmAnalise { background:#dbeafe; color:#1e40af; }
+    .status-Concluido { background:#dcfce7; color:#166534; }
+    .status-Recusado { background:#fee2e2; color:#991b1b; }
+
+    .chip { font-size:0.75rem; font-weight:600; padding:6px 14px; border-radius:999px; border:1px solid #e2e8f0; cursor:pointer; transition:0.15s; white-space:nowrap; }
+    .chip.active { background:#0d2d5a; color:#fff; border-color:#0d2d5a; }
+    .chip:not(.active):hover { background:#f1f5f9; }
+
+    .card-req { transition: 0.15s; }
+    .card-req:hover { box-shadow: 0 6px 18px -6px rgba(0,0,0,0.15); transform: translateY(-2px); }
+
+    .bell-shake { animation: bellShake 0.6s ease-in-out; }
+    @keyframes bellShake { 0%,100%{transform:rotate(0);} 20%{transform:rotate(15deg);} 40%{transform:rotate(-12deg);} 60%{transform:rotate(8deg);} 80%{transform:rotate(-5deg);} }
+
+    .switch { position:relative; display:inline-block; width:40px; height:22px; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; cursor:pointer; inset:0; background:#cbd5e1; border-radius:999px; transition:.2s; }
+    .slider:before { position:absolute; content:""; height:16px; width:16px; left:3px; bottom:3px; background:white; border-radius:50%; transition:.2s; }
+    input:checked + .slider { background:#16a34a; }
+    input:checked + .slider:before { transform: translateX(18px); }
+
+    ::-webkit-scrollbar { width:8px; height:8px; }
+    ::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:999px; }
+
+    #whatsappPopover { position:fixed; z-index:80; width:280px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ===================== LOGIN ===================== -->
+<div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-xl p-8 fade-in">
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-conadibe-blue rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-lock text-white text-2xl"></i>
+            </div>
+            <h1 class="text-xl font-bold conadibe-blue">Painel de Solicitações</h1>
+            <p class="text-xs text-gray-400">CONADIBE 2026 — Secretaria</p>
+        </div>
+        <form id="formLogin" class="space-y-4">
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase">Usuário</label>
+                <input type="text" id="loginUsuario" class="input-field" required autocomplete="username">
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-500 uppercase">Senha</label>
+                <input type="password" id="loginSenha" class="input-field" required autocomplete="current-password">
+            </div>
+            <p id="loginErro" class="text-red-600 text-xs font-semibold hidden"></p>
+            <button type="submit" id="btnLogin" class="w-full bg-conadibe-blue hover:bg-blue-900 text-white py-3 rounded-xl font-bold shadow-lg transition">
+                ENTRAR
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== DASHBOARD ===================== -->
+<div id="dashboardShell" class="hidden min-h-screen flex flex-col">
+
+    <!-- TOPBAR -->
+    <header class="bg-conadibe-blue text-white px-4 py-3 flex items-center justify-between gap-3 shadow-lg sticky top-0 z-40">
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <i class="fa-solid fa-headset conadibe-gold text-xl"></i>
+            <span class="font-bold hidden sm:inline">Solicitações</span>
+        </div>
+
+        <div class="flex-1 max-w-md relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-white/50 text-sm"></i>
+            <input id="buscaTexto" type="text" placeholder="Buscar por nome ou protocolo..."
+                   class="w-full bg-white/10 placeholder-white/50 text-white text-sm rounded-lg pl-9 pr-3 py-2 focus:bg-white/20 outline-none">
+        </div>
+
+        <div class="flex items-center gap-3 flex-shrink-0">
+            <button id="btnFiltrosMobile" class="md:hidden text-white/80 hover:text-white"><i class="fa-solid fa-filter"></i></button>
+
+            <button id="btnBell" class="relative text-white/80 hover:text-white">
+                <i class="fa-solid fa-bell text-lg" id="iconBell"></i>
+                <span id="badgeBell" class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+            </button>
+
+            <div class="relative">
+                <button id="btnUserMenu" class="flex items-center gap-2 text-sm">
+                    <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs" id="avatarIniciais">--</div>
+                    <span class="hidden sm:inline" id="nomeUsuarioTopo">—</span>
+                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                </button>
+                <div id="userMenuDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white text-gray-700 rounded-xl shadow-2xl overflow-hidden fade-in">
+                    <div class="px-4 py-3 border-b bg-gray-50">
+                        <p class="font-bold text-sm" id="nomeUsuarioMenu">—</p>
+                        <p class="text-xs text-gray-400" id="perfilUsuarioMenu">—</p>
+                    </div>
+                    <button onclick="abrirModalSenha()" class="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-2"><i class="fa-solid fa-key text-gray-400"></i> Trocar Senha</button>
+                    <button id="btnAbrirUsuarios" onclick="abrirModalUsuarios()" class="hidden w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 flex items-center gap-2"><i class="fa-solid fa-users-gear text-gray-400"></i> Gerenciar Usuários</button>
+                    <button onclick="sair()" class="w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 text-red-600 flex items-center gap-2"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- FILTROS -->
+    <div id="painelFiltros" class="bg-white border-b px-4 py-3 hidden md:block">
+        <div class="flex flex-wrap items-center gap-2 mb-3" id="chipsStatus"></div>
+        <div class="flex flex-wrap gap-2 items-end">
+            <div class="w-40">
+                <label class="text-[10px] font-bold text-gray-400 uppercase">Tipo</label>
+                <select id="filtroTipo" class="input-field text-xs py-2">
+                    <option value="">Todos</option>
+                    <option value="Correção de Dados">Correção de Dados</option>
+                    <option value="Envio de Credencial/Certificado">Envio de Credencial</option>
+                    <option value="Atualização Cadastral">Atualização Cadastral</option>
+                    <option value="Atualização de Foto">Atualização de Foto</option>
+                    <option value="Outras Solicitações">Outras</option>
+                </select>
+            </div>
+            <div class="w-44">
+                <label class="text-[10px] font-bold text-gray-400 uppercase">Ministério</label>
+                <select id="filtroMinisterio" class="input-field text-xs py-2">
+                    <option value="">Todos</option>
+                    <option value="AD TEMPO DE DEUS">AD TEMPO DE DEUS</option>
+                    <option value="ADSA BRASIL">ADSA BRASIL</option>
+                    <option value="OUTRO">OUTRO</option>
+                </select>
+            </div>
+            <div class="w-36">
+                <label class="text-[10px] font-bold text-gray-400 uppercase">De</label>
+                <input type="date" id="filtroDataDe" class="input-field text-xs py-2">
+            </div>
+            <div class="w-36">
+                <label class="text-[10px] font-bold text-gray-400 uppercase">Até</label>
+                <input type="date" id="filtroDataAte" class="input-field text-xs py-2">
+            </div>
+            <button onclick="limparFiltros()" class="text-xs font-semibold text-gray-500 hover:text-red-600 py-2 px-3"><i class="fa-solid fa-eraser"></i> Limpar</button>
+            <div class="ml-auto text-xs text-gray-400 self-center" id="contadorResultados"></div>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO -->
+    <main class="flex-1 p-4 max-w-7xl w-full mx-auto">
+        <div id="listaVazia" class="hidden text-center text-gray-400 py-20">
+            <i class="fa-regular fa-folder-open text-5xl mb-3"></i>
+            <p>Nenhuma solicitação encontrada com os filtros atuais.</p>
+        </div>
+        <div id="carregandoLista" class="text-center text-gray-400 py-20">
+            <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3"></i>
+            <p>Carregando solicitações...</p>
+        </div>
+        <div id="gridSolicitacoes" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+
+        <div id="paginacao" class="hidden flex items-center justify-center gap-3 mt-6 text-sm">
+            <button onclick="mudarPagina(-1)" class="px-3 py-1.5 rounded-lg border hover:bg-gray-100"><i class="fa-solid fa-chevron-left"></i></button>
+            <span id="infoPagina" class="text-gray-500">1 / 1</span>
+            <button onclick="mudarPagina(1)" class="px-3 py-1.5 rounded-lg border hover:bg-gray-100"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </main>
+</div>
+
+<!-- ===================== MODAL DETALHE ===================== -->
+<div id="modalDetalhe" class="hidden fixed inset-0 bg-black/60 z-[90] items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto fade-in">
+        <div class="bg-conadibe-blue text-white p-5 rounded-t-2xl sticky top-0 flex justify-between items-start">
+            <div>
+                <p class="text-xs opacity-70">Protocolo</p>
+                <h3 class="font-bold text-lg" id="detProtocolo">—</h3>
+            </div>
+            <button onclick="fecharModal('modalDetalhe')" class="text-white/70 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="p-6 space-y-4 text-sm">
+            <div>
+                <span class="status-badge" id="detStatusBadge">—</span>
+                <span class="text-xs text-gray-400 ml-2" id="detData">—</span>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Tipo</p><p class="font-semibold" id="detTipo">—</p></div>
+                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Ministério</p><p class="font-semibold" id="detMinisterio">—</p></div>
+                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Nome</p><p class="font-semibold" id="detNome">—</p></div>
+                <div><p class="text-[10px] font-bold text-gray-400 uppercase">Telefone</p><p class="font-semibold" id="detTelefone">—</p></div>
+                <div class="col-span-2"><p class="text-[10px] font-bold text-gray-400 uppercase">E-mail</p><p class="font-semibold" id="detEmail">—</p></div>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Descrição da Solicitação</p>
+                <p class="bg-gray-50 border rounded-lg p-3 text-gray-700" id="detDescricao">—</p>
+            </div>
+            <div id="detAnexosWrap">
+                <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Anexos</p>
+                <a id="detAnexosLink" href="#" target="_blank" class="text-blue-700 underline text-sm"><i class="fa-solid fa-folder-open"></i> Abrir pasta no Drive</a>
+            </div>
+
+            <div class="border-t pt-4">
+                <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Atualizar Status</p>
+                <div class="flex gap-2">
+                    <select id="detStatusSelect" class="input-field">
+                        <option value="Recebido">Recebido</option>
+                        <option value="Em Análise">Em Análise</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Recusado">Recusado</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase mb-1">Observações Internas</p>
+                <textarea id="detObservacoes" rows="3" class="input-field" placeholder="Anotações da equipe (não visível ao solicitante)"></textarea>
+            </div>
+            <button onclick="salvarDetalhe()" id="btnSalvarDetalhe" class="w-full bg-conadibe-blue hover:bg-blue-900 text-white py-2.5 rounded-xl font-bold transition">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar Alterações
+            </button>
+        </div>
+        <div class="p-4 border-t flex gap-2 sticky bottom-0 bg-white rounded-b-2xl">
+            <button onclick="abrirWhatsappPopover(solicitacaoAtual, this)" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl font-bold flex items-center justify-center gap-2">
+                <i class="fa-brands fa-whatsapp"></i> Contatar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===================== POPOVER WHATSAPP ===================== -->
+<div id="whatsappPopover" class="hidden bg-white rounded-xl shadow-2xl border p-2 fade-in">
+    <p class="text-[10px] font-bold text-gray-400 uppercase px-2 py-1">Enviar mensagem pronta</p>
+    <div id="listaTemplatesWhats" class="space-y-1"></div>
+</div>
+
+<!-- ===================== MODAL SENHA ===================== -->
+<div id="modalSenha" class="hidden fixed inset-0 bg-black/60 z-[90] items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 fade-in">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-lg conadibe-blue">Trocar Senha</h3>
+            <button onclick="fecharModal('modalSenha')" class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="formSenha" class="space-y-3">
+            <input type="password" id="senhaAtual" placeholder="Senha atual" class="input-field" required>
+            <input type="password" id="senhaNova" placeholder="Nova senha (mín. 6 caracteres)" class="input-field" required minlength="6">
+            <input type="password" id="senhaNovaConf" placeholder="Confirmar nova senha" class="input-field" required minlength="6">
+            <p id="senhaErro" class="text-red-600 text-xs font-semibold hidden"></p>
+            <button type="submit" class="w-full bg-conadibe-blue hover:bg-blue-900 text-white py-2.5 rounded-xl font-bold">Salvar Nova Senha</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===================== MODAL USUÁRIOS (ADMIN) ===================== -->
+<div id="modalUsuarios" class="hidden fixed inset-0 bg-black/60 z-[90] items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto fade-in">
+        <div class="p-5 border-b flex justify-between items-center sticky top-0 bg-white">
+            <h3 class="font-bold text-lg conadibe-blue"><i class="fa-solid fa-users-gear"></i> Usuários do Painel</h3>
+            <button onclick="fecharModal('modalUsuarios')" class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="p-5">
+            <form id="formNovoUsuario" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6 bg-gray-50 p-4 rounded-xl border">
+                <input type="text" id="novoNome" placeholder="Nome completo" class="input-field" required>
+                <input type="text" id="novoLogin" placeholder="Usuário (login / e-mail)" class="input-field" required>
+                <input type="password" id="novaSenha" placeholder="Senha provisória" class="input-field" required minlength="6">
+                <select id="novoPerfil" class="input-field">
+                    <option value="EQUIPE">Equipe (gerencia solicitações)</option>
+                    <option value="ADMIN">Admin (também gerencia usuários)</option>
+                </select>
+                <button type="submit" class="md:col-span-2 bg-conadibe-blue hover:bg-blue-900 text-white py-2.5 rounded-xl font-bold">
+                    <i class="fa-solid fa-user-plus"></i> Adicionar Usuário
+                </button>
+            </form>
+            <div id="listaUsuarios" class="space-y-2"></div>
+        </div>
+    </div>
+</div>
+
+<div id="loadingOverlay" class="hidden fixed inset-0 bg-black/70 z-[200] items-center justify-center">
+    <i class="fa-solid fa-circle-notch fa-spin text-white text-4xl"></i>
+</div>
+
+<script>
+// =========================================================================
+// CONFIGURAÇÃO — mesma URL de implantação do Apps Script usada no
+// solicitacoes.html (é o mesmo projeto/planilha, com a aba Usuarios).
+// =========================================================================
+const API_URL = 'COLE_AQUI_A_URL_DE_IMPLANTACAO_DO_APPS_SCRIPT';
+const INTERVALO_ATUALIZACAO_MS = 30000;
+const ITENS_POR_PAGINA = 12;
+
+let token = localStorage.getItem('conadibe_dash_token') || null;
+let usuarioAtual = JSON.parse(localStorage.getItem('conadibe_dash_user') || 'null');
+let todasSolicitacoes = [];
+let listaFiltrada = [];
+let solicitacaoAtual = null;
+let statusAtivo = '';
+let paginaAtual = 1;
+let intervaloId = null;
+let ultimaContagemRecebido = 0;
+
+const STATUS_LIST = ['Recebido', 'Em Análise', 'Concluído', 'Recusado'];
+
+const TEMPLATES_WHATS = [
+    { id: 'confirmacao', label: 'Confirmar recebimento', texto: (s) => `Olá ${s.nomeCompleto}! Aqui é da Secretaria do CONADIBE 2026. Recebemos sua solicitação (protocolo ${s.protocolo} - ${s.tipo}) e ela já está em análise. Qualquer novidade avisamos por aqui ou por e-mail.` },
+    { id: 'documentos', label: 'Pedir documento/foto', texto: (s) => `Olá ${s.nomeCompleto}! Sobre sua solicitação ${s.protocolo}, precisamos que você reenvie ou complemente algum documento/foto. Pode nos enviar por aqui mesmo, por gentileza?` },
+    { id: 'informacoes', label: 'Pedir mais informações', texto: (s) => `Olá ${s.nomeCompleto}! Sobre sua solicitação ${s.protocolo} (${s.tipo}), poderia nos passar mais detalhes para prosseguirmos com a análise?` },
+    { id: 'concluido', label: 'Avisar que foi concluída', texto: (s) => `Olá ${s.nomeCompleto}! Sua solicitação ${s.protocolo} (${s.tipo}) foi concluída. Qualquer dúvida, estamos à disposição!` },
+    { id: 'livre', label: 'Mensagem em branco', texto: () => '' }
+];
+
+// --------------------------- INIT ---------------------------
+document.addEventListener('DOMContentLoaded', () => {
+    montarChipsStatus();
+    if (token && usuarioAtual) {
+        entrarNoDashboard();
+    }
+});
+
+document.getElementById('formLogin').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const usuario = document.getElementById('loginUsuario').value.trim();
+    const senha = document.getElementById('loginSenha').value;
+    const erroEl = document.getElementById('loginErro');
+    erroEl.classList.add('hidden');
+    const btn = document.getElementById('btnLogin');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Entrando...';
+    try {
+        const resp = await chamarApi({ action: 'login', usuario, senha });
+        if (!resp.ok) throw new Error(resp.error || 'Usuário ou senha inválidos.');
+        token = resp.token;
+        usuarioAtual = { nome: resp.nome, perfil: resp.perfil };
+        localStorage.setItem('conadibe_dash_token', token);
+        localStorage.setItem('conadibe_dash_user', JSON.stringify(usuarioAtual));
+        entrarNoDashboard();
+    } catch (err) {
+        erroEl.textContent = err.message;
+        erroEl.classList.remove('hidden');
+    } finally {
+        btn.disabled = false; btn.innerHTML = 'ENTRAR';
+    }
+});
+
+function entrarNoDashboard() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('dashboardShell').classList.remove('hidden');
+    document.getElementById('nomeUsuarioTopo').textContent = usuarioAtual.nome;
+    document.getElementById('nomeUsuarioMenu').textContent = usuarioAtual.nome;
+    document.getElementById('perfilUsuarioMenu').textContent = usuarioAtual.perfil === 'ADMIN' ? 'Administrador' : 'Equipe';
+    document.getElementById('avatarIniciais').textContent = usuarioAtual.nome.split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase();
+    document.getElementById('btnAbrirUsuarios').classList.toggle('hidden', usuarioAtual.perfil !== 'ADMIN');
+    carregarSolicitacoes();
+    if (intervaloId) clearInterval(intervaloId);
+    intervaloId = setInterval(() => carregarSolicitacoes(true), INTERVALO_ATUALIZACAO_MS);
+}
+
+function sair() {
+    chamarApi({ action: 'logout', token }).catch(() => {});
+    localStorage.removeItem('conadibe_dash_token');
+    localStorage.removeItem('conadibe_dash_user');
+    token = null; usuarioAtual = null;
+    if (intervaloId) clearInterval(intervaloId);
+    document.getElementById('dashboardShell').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+// --------------------------- API HELPER ---------------------------
+async function chamarApi(payload) {
+    if (API_URL.indexOf('COLE_AQUI') === 0) {
+        alert('Configuração pendente: cole a URL do Apps Script na constante API_URL do dashboard.html.');
+        throw new Error('API_URL não configurada.');
+    }
+    const resp = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (data && data.error && /sess(a|ã)o inv[aá]lida|expirada/i.test(data.error)) {
+        alert('Sua sessão expirou. Faça login novamente.');
+        sair();
+    }
+    return data;
+}
+
+// --------------------------- LISTAR / FILTRAR ---------------------------
+async function carregarSolicitacoes(silencioso) {
+    if (!silencioso) {
+        document.getElementById('carregandoLista').classList.remove('hidden');
+        document.getElementById('gridSolicitacoes').innerHTML = '';
+    }
+    // não atualiza em segundo plano se algum modal estiver aberto (evita atrapalhar edição)
+    if (silencioso && algumModalAberto()) return;
+
+    try {
+        const resp = await chamarApi({ action: 'listarSolicitacoes', token });
+        if (!resp.ok) throw new Error(resp.error || 'Erro ao carregar solicitações.');
+        todasSolicitacoes = resp.solicitacoes || [];
+        todasSolicitacoes.sort((a, b) => new Date(b.dataHora) - new Date(a.dataHora));
+        atualizarBadgeNotificacao();
+        aplicarFiltros();
+    } catch (err) {
+        if (!silencioso) alert('Erro ao carregar: ' + err.message);
+    } finally {
+        document.getElementById('carregandoLista').classList.add('hidden');
+    }
+}
+
+function algumModalAberto() {
+    return ['modalDetalhe', 'modalSenha', 'modalUsuarios'].some(id => !document.getElementById(id).classList.contains('hidden'));
+}
+
+function montarChipsStatus() {
+    const wrap = document.getElementById('chipsStatus');
+    const opcoes = [{ v: '', l: 'Todos' }, ...STATUS_LIST.map(s => ({ v: s, l: s }))];
+    wrap.innerHTML = opcoes.map(o =>
+        `<button type="button" class="chip ${o.v === statusAtivo ? 'active' : ''}" data-status="${o.v}" onclick="filtrarPorStatus('${o.v}')">${o.l}</button>`
+    ).join('');
+}
+
+function filtrarPorStatus(status) {
+    statusAtivo = status;
+    montarChipsStatus();
+    paginaAtual = 1;
+    aplicarFiltros();
+}
+
+['buscaTexto', 'filtroTipo', 'filtroMinisterio', 'filtroDataDe', 'filtroDataAte'].forEach(id => {
+    document.getElementById(id).addEventListener('input', debounce(() => { paginaAtual = 1; aplicarFiltros(); }, 250));
+});
+
+function limparFiltros() {
+    document.getElementById('buscaTexto').value = '';
+    document.getElementById('filtroTipo').value = '';
+    document.getElementById('filtroMinisterio').value = '';
+    document.getElementById('filtroDataDe').value = '';
+    document.getElementById('filtroDataAte').value = '';
+    statusAtivo = '';
+    montarChipsStatus();
+    paginaAtual = 1;
+    aplicarFiltros();
+}
+
+function aplicarFiltros() {
+    const busca = document.getElementById('buscaTexto').value.trim().toLowerCase();
+    const tipo = document.getElementById('filtroTipo').value;
+    const ministerio = document.getElementById('filtroMinisterio').value;
+    const dataDe = document.getElementById('filtroDataDe').value;
+    const dataAte = document.getElementById('filtroDataAte').value;
+
+    listaFiltrada = todasSolicitacoes.filter(s => {
+        if (statusAtivo && s.status !== statusAtivo) return false;
+        if (tipo && s.tipo !== tipo) return false;
+        if (ministerio && s.ministerio !== ministerio) return false;
+        if (busca && !(s.nomeCompleto.toLowerCase().includes(busca) || s.protocolo.toLowerCase().includes(busca))) return false;
+        const d = new Date(s.dataHora);
+        if (dataDe && d < new Date(dataDe + 'T00:00:00')) return false;
+        if (dataAte && d > new Date(dataAte + 'T23:59:59')) return false;
+        return true;
+    });
+
+    document.getElementById('contadorResultados').textContent = listaFiltrada.length + ' resultado(s)';
+    renderizarLista();
+}
+
+function renderizarLista() {
+    const grid = document.getElementById('gridSolicitacoes');
+    const vazio = document.getElementById('listaVazia');
+    if (listaFiltrada.length === 0) {
+        grid.innerHTML = '';
+        vazio.classList.remove('hidden');
+        document.getElementById('paginacao').classList.add('hidden');
+        return;
+    }
+    vazio.classList.add('hidden');
+
+    const totalPaginas = Math.max(1, Math.ceil(listaFiltrada.length / ITENS_POR_PAGINA));
+    if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+    const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+    const pagina = listaFiltrada.slice(inicio, inicio + ITENS_POR_PAGINA);
+
+    grid.innerHTML = pagina.map(s => cardHtml(s)).join('');
+
+    const pag = document.getElementById('paginacao');
+    if (totalPaginas > 1) {
+        pag.classList.remove('hidden'); pag.classList.add('flex');
+        document.getElementById('infoPagina').textContent = paginaAtual + ' / ' + totalPaginas;
+    } else {
+        pag.classList.add('hidden');
+    }
+}
+
+function mudarPagina(delta) {
+    const totalPaginas = Math.max(1, Math.ceil(listaFiltrada.length / ITENS_POR_PAGINA));
+    paginaAtual = Math.min(totalPaginas, Math.max(1, paginaAtual + delta));
+    renderizarLista();
+    document.querySelector('main').scrollIntoView({ behavior: 'smooth' });
+}
+
+function classeStatus(status) {
+    return 'status-' + String(status).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
+}
+
+function cardHtml(s) {
+    const statusClasse = classeStatus(s.status);
+    return `
+    <div class="card-req bg-white rounded-xl border shadow-sm p-4 flex flex-col gap-2">
+        <div class="flex justify-between items-start">
+            <span class="status-badge ${statusClasse}">${s.status}</span>
+            <span class="text-[10px] text-gray-400">${tempoRelativo(s.dataHora)}</span>
+        </div>
+        <p class="font-bold text-gray-800 text-sm truncate">${escapeHtml(s.nomeCompleto)}</p>
+        <p class="text-xs text-gray-500"><i class="fa-solid fa-tag conadibe-gold mr-1"></i>${escapeHtml(s.tipo)}</p>
+        <p class="text-xs text-gray-400"><i class="fa-solid fa-church mr-1"></i>${escapeHtml(s.ministerio)}${s.campoSetor ? ' — ' + escapeHtml(s.campoSetor) : ''}</p>
+        <p class="text-[11px] text-gray-400 font-mono">${s.protocolo}</p>
+        <div class="flex gap-2 mt-2">
+            <button onclick='abrirDetalhe(${JSON.stringify(s.protocolo)})' class="flex-1 text-xs font-bold bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-lg"><i class="fa-solid fa-eye"></i> Detalhes</button>
+            <button onclick='abrirWhatsappPopover(${JSON.stringify(s).replace(/'/g, "&#39;")}, this)' class="flex-1 text-xs font-bold bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded-lg"><i class="fa-brands fa-whatsapp"></i> Contato</button>
+        </div>
+    </div>`;
+}
+
+// --------------------------- NOTIFICAÇÃO (SININHO) ---------------------------
+function atualizarBadgeNotificacao() {
+    const qtd = todasSolicitacoes.filter(s => s.status === 'Recebido').length;
+    const badge = document.getElementById('badgeBell');
+    if (qtd > 0) {
+        badge.textContent = qtd > 99 ? '99+' : qtd;
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+    if (qtd > ultimaContagemRecebido) {
+        const bell = document.getElementById('iconBell');
+        bell.classList.remove('bell-shake');
+        void bell.offsetWidth;
+        bell.classList.add('bell-shake');
+    }
+    ultimaContagemRecebido = qtd;
+}
+
+document.getElementById('btnBell').addEventListener('click', () => {
+    filtrarPorStatus('Recebido');
+    document.getElementById('painelFiltros').classList.remove('hidden');
+});
+
+// --------------------------- DETALHE ---------------------------
+function abrirDetalhe(protocolo) {
+    const s = todasSolicitacoes.find(x => x.protocolo === protocolo);
+    if (!s) return;
+    solicitacaoAtual = s;
+    document.getElementById('detProtocolo').textContent = s.protocolo;
+    const statusClasse = classeStatus(s.status);
+    const badge = document.getElementById('detStatusBadge');
+    badge.className = 'status-badge ' + statusClasse;
+    badge.textContent = s.status;
+    document.getElementById('detData').textContent = new Date(s.dataHora).toLocaleString('pt-BR');
+    document.getElementById('detTipo').textContent = s.tipo;
+    document.getElementById('detMinisterio').textContent = s.ministerio === 'ADSA BRASIL' && s.campoSetor ? s.ministerio + ' — ' + s.campoSetor : (s.ministerio === 'OUTRO' ? s.outroMinisterio : s.ministerio);
+    document.getElementById('detNome').textContent = s.nomeCompleto;
+    document.getElementById('detTelefone').textContent = s.telefone;
+    document.getElementById('detEmail').textContent = s.email;
+    document.getElementById('detDescricao').textContent = s.descricao || '(sem descrição)';
+    const linkAnexo = document.getElementById('detAnexosLink');
+    if (s.pastaUrl) {
+        linkAnexo.href = s.pastaUrl;
+        document.getElementById('detAnexosWrap').classList.remove('hidden');
+    } else {
+        document.getElementById('detAnexosWrap').classList.add('hidden');
+    }
+    document.getElementById('detStatusSelect').value = s.status;
+    document.getElementById('detObservacoes').value = s.observacoes || '';
+    abrirModal('modalDetalhe');
+}
+
+async function salvarDetalhe() {
+    if (!solicitacaoAtual) return;
+    const btn = document.getElementById('btnSalvarDetalhe');
+    btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Salvando...';
+    try {
+        const novoStatus = document.getElementById('detStatusSelect').value;
+        const observacoes = document.getElementById('detObservacoes').value;
+        const resp = await chamarApi({ action: 'atualizarSolicitacao', token, protocolo: solicitacaoAtual.protocolo, status: novoStatus, observacoes });
+        if (!resp.ok) throw new Error(resp.error || 'Erro ao salvar.');
+        solicitacaoAtual.status = novoStatus;
+        solicitacaoAtual.observacoes = observacoes;
+        const idx = todasSolicitacoes.findIndex(x => x.protocolo === solicitacaoAtual.protocolo);
+        if (idx > -1) todasSolicitacoes[idx] = solicitacaoAtual;
+        atualizarBadgeNotificacao();
+        aplicarFiltros();
+        fecharModal('modalDetalhe');
+    } catch (err) {
+        alert('Erro: ' + err.message);
+    } finally {
+        btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações';
+    }
+}
+
+// --------------------------- WHATSAPP ---------------------------
+function abrirWhatsappPopover(s, btnEl) {
+    if (typeof s === 'string') { try { s = JSON.parse(s); } catch (e) {} }
+    const pop = document.getElementById('whatsappPopover');
+    const lista = document.getElementById('listaTemplatesWhats');
+    lista.innerHTML = TEMPLATES_WHATS.map(t =>
+        `<button type="button" class="w-full text-left text-xs px-3 py-2 rounded-lg hover:bg-green-50 flex items-center gap-2" onclick='enviarWhatsapp(${JSON.stringify(s).replace(/'/g, "&#39;")}, "${t.id}")'>
+            <i class="fa-brands fa-whatsapp text-green-600"></i> ${t.label}
+         </button>`
+    ).join('');
+
+    const rect = btnEl.getBoundingClientRect();
+    pop.style.top = Math.min(rect.bottom + 6, window.innerHeight - 260) + 'px';
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - 292)) + 'px';
+    pop.classList.remove('hidden');
+
+    setTimeout(() => {
+        document.addEventListener('click', fecharPopoverFora, { once: true });
+    }, 0);
+}
+function fecharPopoverFora(e) {
+    const pop = document.getElementById('whatsappPopover');
+    if (!pop.contains(e.target)) pop.classList.add('hidden');
+    else document.addEventListener('click', fecharPopoverFora, { once: true });
+}
+function enviarWhatsapp(s, templateId) {
+    if (typeof s === 'string') { try { s = JSON.parse(s); } catch (e) {} }
+    const tpl = TEMPLATES_WHATS.find(t => t.id === templateId);
+    const texto = tpl ? tpl.texto(s) : '';
+    const numero = String(s.telefone || '').replace(/\D/g, '');
+    const url = 'https://wa.me/55' + numero + (texto ? '?text=' + encodeURIComponent(texto) : '');
+    window.open(url, '_blank');
+    document.getElementById('whatsappPopover').classList.add('hidden');
+}
+
+// --------------------------- TROCAR SENHA ---------------------------
+function abrirModalSenha() {
+    document.getElementById('userMenuDropdown').classList.add('hidden');
+    document.getElementById('formSenha').reset();
+    document.getElementById('senhaErro').classList.add('hidden');
+    abrirModal('modalSenha');
+}
+document.getElementById('formSenha').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const atual = document.getElementById('senhaAtual').value;
+    const nova = document.getElementById('senhaNova').value;
+    const conf = document.getElementById('senhaNovaConf').value;
+    const erroEl = document.getElementById('senhaErro');
+    if (nova !== conf) { erroEl.textContent = 'A confirmação não confere com a nova senha.'; erroEl.classList.remove('hidden'); return; }
+    try {
+        const resp = await chamarApi({ action: 'alterarSenha', token, senhaAtual: atual, senhaNova: nova });
+        if (!resp.ok) throw new Error(resp.error || 'Erro ao trocar senha.');
+        alert('Senha alterada com sucesso!');
+        fecharModal('modalSenha');
+    } catch (err) {
+        erroEl.textContent = err.message;
+        erroEl.classList.remove('hidden');
+    }
+});
+
+// --------------------------- USUÁRIOS (ADMIN) ---------------------------
+async function abrirModalUsuarios() {
+    document.getElementById('userMenuDropdown').classList.add('hidden');
+    abrirModal('modalUsuarios');
+    await carregarUsuarios();
+}
+async function carregarUsuarios() {
+    const lista = document.getElementById('listaUsuarios');
+    lista.innerHTML = '<p class="text-center text-gray-400 text-sm py-4"><i class="fa-solid fa-circle-notch fa-spin"></i> Carregando...</p>';
+    try {
+        const resp = await chamarApi({ action: 'listarUsuarios', token });
+        if (!resp.ok) throw new Error(resp.error || 'Erro ao carregar usuários.');
+        lista.innerHTML = (resp.usuarios || []).map(u => `
+            <div class="flex items-center justify-between border rounded-lg px-3 py-2">
+                <div>
+                    <p class="font-semibold text-sm">${escapeHtml(u.nome)} <span class="text-[10px] font-bold ${u.perfil === 'ADMIN' ? 'text-conadibe-blue' : 'text-gray-400'}">${u.perfil}</span></p>
+                    <p class="text-xs text-gray-400">${escapeHtml(u.usuario)} ${u.ultimoLogin ? '· último acesso ' + tempoRelativo(u.ultimoLogin) : ''}</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" ${u.ativo ? 'checked' : ''} onchange="toggleUsuarioAtivo('${u.id}', this.checked)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        `).join('') || '<p class="text-center text-gray-400 text-sm py-4">Nenhum usuário cadastrado.</p>';
+    } catch (err) {
+        lista.innerHTML = '<p class="text-center text-red-500 text-sm py-4">' + err.message + '</p>';
+    }
+}
+document.getElementById('formNovoUsuario').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const nome = document.getElementById('novoNome').value.trim();
+    const usuario = document.getElementById('novoLogin').value.trim();
+    const senha = document.getElementById('novaSenha').value;
+    const perfil = document.getElementById('novoPerfil').value;
+    try {
+        const resp = await chamarApi({ action: 'criarUsuario', token, nome, usuario, senha, perfil });
+        if (!resp.ok) throw new Error(resp.error || 'Erro ao criar usuário.');
+        e.target.reset();
+        await carregarUsuarios();
+    } catch (err) {
+        alert('Erro: ' + err.message);
+    }
+});
+async function toggleUsuarioAtivo(usuarioId, ativo) {
+    try {
+        const resp = await chamarApi({ action: 'alterarStatusUsuario', token, usuarioId, ativo });
+        if (!resp.ok) throw new Error(resp.error || 'Erro ao atualizar usuário.');
+    } catch (err) {
+        alert('Erro: ' + err.message);
+        carregarUsuarios();
+    }
+}
+
+// --------------------------- HELPERS ---------------------------
+function abrirModal(id) { const m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex'); }
+function fecharModal(id) { const m = document.getElementById(id); m.classList.add('hidden'); m.classList.remove('flex'); }
+
+document.getElementById('btnUserMenu').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('userMenuDropdown').classList.toggle('hidden');
+});
+document.addEventListener('click', () => document.getElementById('userMenuDropdown').classList.add('hidden'));
+
+document.getElementById('btnFiltrosMobile').addEventListener('click', () => {
+    document.getElementById('painelFiltros').classList.toggle('hidden');
+});
+
+function debounce(fn, ms) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+function tempoRelativo(dataStr) {
+    const diffMs = Date.now() - new Date(dataStr).getTime();
+    const min = Math.floor(diffMs / 60000);
+    if (min < 1) return 'agora';
+    if (min < 60) return 'há ' + min + ' min';
+    const h = Math.floor(min / 60);
+    if (h < 24) return 'há ' + h + 'h';
+    const d = Math.floor(h / 24);
+    return 'há ' + d + 'd';
+}
+
+function escapeHtml(str) {
+    return String(str || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+</script>
+</body>
+</html>
