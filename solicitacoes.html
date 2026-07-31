@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Área de Solicitações - Ministros | CONADIBE 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; }
+        .conadibe-blue { color: #0d2d5a; }
+        .bg-conadibe-blue { background-color: #0d2d5a; }
+        .conadibe-gold { color: #d4a017; }
+        .border-gold { border-color: #d4a017; }
+
+        .input-field { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; transition: 0.3s; }
+        .input-field:focus { border-color: #0d2d5a; outline: none; box-shadow: 0 0 0 3px rgba(13, 45, 90, 0.1); }
+
+        .tipo-card { transition: 0.2s; }
+        .tipo-card.selected { border-color: #0d2d5a; background-color: #eff6ff; box-shadow: 0 0 0 2px rgba(13,45,90,0.15); }
+
+        .fade-in { animation: fadeIn 0.35s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        .dropzone { border: 2px dashed #cbd5e1; transition: 0.2s; }
+        .dropzone.dragover { border-color: #0d2d5a; background-color: #eff6ff; }
+
+        .file-row { animation: fadeIn 0.25s ease-out; }
+    </style>
+</head>
+<body class="pb-16">
+
+    <div class="bg-conadibe-blue text-white p-6 pb-10 rounded-b-3xl shadow-lg relative">
+        <div class="max-w-3xl mx-auto">
+            <a href="index.html" class="text-gray-300 hover:text-white transition text-sm"><i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao início</a>
+            <div class="flex items-center gap-3 mt-3">
+                <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fa-solid fa-headset conadibe-gold text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold">Área de Solicitações</h1>
+                    <p class="text-sm text-gray-300">Exclusiva para Ministros — CONADIBE 2026</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto -mt-6 px-4 relative z-10">
+        <div class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
+
+            <p class="text-sm text-gray-500 mb-6">
+                Use este formulário para correção de dados, envio de credencial/certificado, atualização cadastral,
+                atualização de foto ou outras solicitações. Campos com <span class="text-red-500">*</span> são obrigatórios.
+            </p>
+
+            <form id="formSolicitacao" novalidate>
+
+                <!-- SEUS DADOS -->
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-conadibe-blue text-white text-xs flex items-center justify-center">1</span>
+                    Seus Dados
+                </h2>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Nome Completo <span class="text-red-500">*</span></label>
+                        <input type="text" id="nomeCompleto" class="input-field" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">Telefone / WhatsApp <span class="text-red-500">*</span></label>
+                            <input type="text" id="telefone" class="input-field phone-mask" placeholder="(00) 00000-0000" required>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-500 uppercase">E-mail <span class="text-red-500">*</span></label>
+                            <input type="email" id="email" class="input-field" placeholder="exemplo@email.com" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-gray-500 uppercase">Ministério <span class="text-red-500">*</span></label>
+                        <select id="ministerio" class="input-field bg-white" required>
+                            <option value="" disabled selected>Selecione...</option>
+                            <option value="AD TEMPO DE DEUS">AD TEMPO DE DEUS</option>
+                            <option value="ADSA BRASIL">ADSA BRASIL</option>
+                            <option value="OUTRO">OUTRO</option>
+                        </select>
+                    </div>
+
+                    <div id="areaOutroMinisterio" class="hidden fade-in">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Qual Ministério? <span class="text-red-500">*</span></label>
+                        <input type="text" id="outroMinisterio" class="input-field" placeholder="Informe o nome do seu ministério">
+                    </div>
+
+                    <div id="areaCampoSetor" class="hidden fade-in">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Campo / Setor (ADSA Brasil) <span class="text-red-500">*</span></label>
+                        <select id="campoSetor" class="input-field bg-white">
+                            <option value="" disabled selected>Carregando campos...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- TIPO DE SOLICITAÇÃO -->
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-conadibe-blue text-white text-xs flex items-center justify-center">2</span>
+                    Tipo de Solicitação
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8" id="gridTipos">
+                    <label class="tipo-card cursor-pointer border rounded-xl p-4 flex items-start gap-3 hover:bg-gray-50">
+                        <input type="radio" name="tipoSolicitacao" value="CORRECAO_DADOS" class="mt-1" required>
+                        <div>
+                            <p class="font-bold text-sm text-gray-800"><i class="fa-solid fa-pen-to-square conadibe-blue mr-1"></i> Correção de Dados</p>
+                            <p class="text-xs text-gray-500 mt-1">Nome, CPF, RG, data de nascimento ou outro dado digitado errado.</p>
+                        </div>
+                    </label>
+                    <label class="tipo-card cursor-pointer border rounded-xl p-4 flex items-start gap-3 hover:bg-gray-50">
+                        <input type="radio" name="tipoSolicitacao" value="ENVIO_CREDENCIAL" class="mt-1">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800"><i class="fa-solid fa-id-card conadibe-blue mr-1"></i> Envio de Credencial/Certificado</p>
+                            <p class="text-xs text-gray-500 mt-1">Retificação de dados, perda ou extravio.</p>
+                        </div>
+                    </label>
+                    <label class="tipo-card cursor-pointer border rounded-xl p-4 flex items-start gap-3 hover:bg-gray-50">
+                        <input type="radio" name="tipoSolicitacao" value="ATUALIZACAO_CADASTRAL" class="mt-1">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800"><i class="fa-solid fa-rotate conadibe-blue mr-1"></i> Atualização Cadastral</p>
+                            <p class="text-xs text-gray-500 mt-1">Endereço, telefone, igreja, cargo etc.</p>
+                        </div>
+                    </label>
+                    <label class="tipo-card cursor-pointer border rounded-xl p-4 flex items-start gap-3 hover:bg-gray-50">
+                        <input type="radio" name="tipoSolicitacao" value="ATUALIZACAO_FOTO" class="mt-1">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800"><i class="fa-solid fa-camera conadibe-blue mr-1"></i> Atualização de Foto</p>
+                            <p class="text-xs text-gray-500 mt-1">Enviar nova foto (anexo ou foto instantânea).</p>
+                        </div>
+                    </label>
+                    <label class="tipo-card cursor-pointer border rounded-xl p-4 flex items-start gap-3 hover:bg-gray-50 md:col-span-2">
+                        <input type="radio" name="tipoSolicitacao" value="OUTRAS" class="mt-1">
+                        <div>
+                            <p class="font-bold text-sm text-gray-800"><i class="fa-solid fa-comment-dots conadibe-blue mr-1"></i> Outras Solicitações</p>
+                            <p class="text-xs text-gray-500 mt-1">Descreva livremente e anexe documentos se precisar.</p>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- DESCRIÇÃO -->
+                <div class="mb-8">
+                    <label class="text-xs font-bold text-gray-500 uppercase" id="labelDescricao">Descreva sua solicitação <span class="text-red-500">*</span></label>
+                    <textarea id="descricao" class="input-field mt-1" rows="4" placeholder="Selecione o tipo de solicitação acima para ver instruções específicas." required></textarea>
+                </div>
+
+                <!-- ANEXOS -->
+                <h2 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-conadibe-blue text-white text-xs flex items-center justify-center">3</span>
+                    Anexos <span id="anexoObrigatorio" class="text-red-500 text-sm hidden">*</span>
+                    <span class="text-xs font-normal text-gray-400" id="anexoOpcionalTag">(opcional)</span>
+                </h2>
+                <p class="text-xs text-gray-500 mb-3">Apenas PDF ou fotos. Até 25MB por arquivo, até 1GB no total.</p>
+
+                <div class="dropzone rounded-xl p-6 text-center mb-3 cursor-pointer" id="dropzone" onclick="document.getElementById('inputArquivos').click()">
+                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                    <p class="text-sm text-gray-600 font-semibold">Clique para escolher arquivos</p>
+                    <p class="text-xs text-gray-400">ou arraste e solte aqui — PDF, JPG, PNG</p>
+                    <input type="file" id="inputArquivos" class="hidden" accept=".pdf,image/*" multiple>
+                </div>
+                <div id="listaArquivos" class="space-y-2 mb-2"></div>
+                <p class="text-xs text-gray-500 mb-8" id="totalArquivos"></p>
+
+                <button type="submit" id="btnEnviar" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-lg transition flex justify-center items-center gap-2">
+                    ENVIAR SOLICITAÇÃO <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+        <p class="text-center text-gray-400 text-xs mt-6">© 2026 CONADIBE - Secretaria Geral</p>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-black/90 z-[200] hidden flex-col items-center justify-center text-center px-6">
+        <div class="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin mb-4" style="border-top-color: #d4a017;"></div>
+        <h3 class="text-white font-bold text-xl">Enviando sua solicitação...</h3>
+        <p class="text-gray-400 text-sm mt-2" id="loadingStatus">Aguarde um instante.</p>
+    </div>
+
+    <!-- SUCESSO -->
+    <div id="successModal" class="fixed inset-0 bg-black/90 z-[200] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative">
+            <div class="bg-green-600 p-6 text-center">
+                <div class="w-20 h-20 bg-white text-green-600 rounded-full flex items-center justify-center text-4xl mx-auto shadow-lg mb-4">
+                    <i class="fa-solid fa-check"></i>
+                </div>
+                <h2 class="text-white text-2xl font-bold">Solicitação Recebida!</h2>
+            </div>
+            <div class="p-8 text-center">
+                <p class="text-gray-700 mb-1">Seu protocolo é:</p>
+                <p class="text-2xl font-bold conadibe-blue mb-4" id="protocoloExibido">—</p>
+                <p class="text-sm text-gray-500 mb-6 text-justify">
+                    Fique atento ao seu e-mail — é por lá que retornaremos sobre sua solicitação.
+                    Se necessário, também entraremos em contato pelo telefone/WhatsApp informado.
+                </p>
+                <a href="index.html" class="block w-full bg-blue-900 text-white py-3 rounded-xl font-bold hover:bg-blue-800 transition">
+                    VOLTAR AO INÍCIO
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURAÇÃO — cole aqui a URL do App da Web do Apps Script
+        // (Implantar > Nova implantação > App da Web > copiar URL /exec)
+        // ============================================================
+        const API_URL = 'COLE_AQUI_A_URL_DE_IMPLANTACAO_DO_APPS_SCRIPT';
+
+        const LIMITE_ARQUIVO_MB = 25;
+        const LIMITE_TOTAL_MB = 1024;
+
+        const TEXTOS_DESCRICAO = {
+            CORRECAO_DADOS: 'Descreva o que precisa ser corrigido (ex: nome grafado errado, CPF/RG incorretos etc.)',
+            ENVIO_CREDENCIAL: 'Explique o motivo: retificação de dados, perda ou extravio da credencial/certificado.',
+            ATUALIZACAO_CADASTRAL: 'Informe quais dados cadastrais deseja atualizar (endereço, telefone, igreja, cargo etc.)',
+            ATUALIZACAO_FOTO: 'Se quiser, deixe uma observação sobre a nova foto (opcional).',
+            OUTRAS: 'Descreva livremente sua solicitação.'
+        };
+
+        let camposAdsaCarregados = false;
+        let arquivosSelecionados = [];
+
+        $(document).ready(function () {
+            $('.phone-mask').mask('(00) 00000-0000');
+        });
+
+        // --- Ministério ---
+        document.getElementById('ministerio').addEventListener('change', function () {
+            const valor = this.value;
+            document.getElementById('areaOutroMinisterio').classList.toggle('hidden', valor !== 'OUTRO');
+            document.getElementById('areaCampoSetor').classList.toggle('hidden', valor !== 'ADSA BRASIL');
+            if (valor === 'ADSA BRASIL' && !camposAdsaCarregados) {
+                carregarCamposAdsa();
+            }
+        });
+
+        async function carregarCamposAdsa() {
+            const select = document.getElementById('campoSetor');
+            try {
+                const resp = await fetch(API_URL + '?action=getCampos');
+                const data = await resp.json();
+                select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
+                (data.campos || []).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c; opt.textContent = c;
+                    select.appendChild(opt);
+                });
+                camposAdsaCarregados = true;
+            } catch (err) {
+                select.innerHTML = '<option value="" disabled selected>Erro ao carregar. Tente novamente.</option>';
+            }
+        }
+
+        // --- Tipo de Solicitação ---
+        document.querySelectorAll('input[name="tipoSolicitacao"]').forEach(input => {
+            input.addEventListener('change', function () {
+                document.querySelectorAll('.tipo-card').forEach(c => c.classList.remove('selected'));
+                this.closest('.tipo-card').classList.add('selected');
+
+                document.getElementById('descricao').placeholder = TEXTOS_DESCRICAO[this.value] || '';
+                const ehFoto = this.value === 'ATUALIZACAO_FOTO';
+                document.getElementById('anexoObrigatorio').classList.toggle('hidden', !ehFoto);
+                document.getElementById('anexoOpcionalTag').classList.toggle('hidden', ehFoto);
+
+                if (this.value === 'ATUALIZACAO_FOTO') {
+                    document.getElementById('descricao').removeAttribute('required');
+                    document.getElementById('labelDescricao').innerHTML = 'Observação (opcional)';
+                } else {
+                    document.getElementById('descricao').setAttribute('required', 'required');
+                    document.getElementById('labelDescricao').innerHTML = 'Descreva sua solicitação <span class="text-red-500">*</span>';
+                }
+            });
+        });
+
+        // --- Anexos ---
+        const inputArquivos = document.getElementById('inputArquivos');
+        const dropzone = document.getElementById('dropzone');
+        inputArquivos.addEventListener('change', e => adicionarArquivos(e.target.files));
+        ['dragover', 'dragleave', 'drop'].forEach(evt => {
+            dropzone.addEventListener(evt, e => {
+                e.preventDefault();
+                dropzone.classList.toggle('dragover', evt === 'dragover');
+                if (evt === 'drop') adicionarArquivos(e.dataTransfer.files);
+            });
+        });
+
+        function adicionarArquivos(fileList) {
+            const tiposOk = /\.(pdf|jpe?g|png|heic|webp)$/i;
+            for (const file of fileList) {
+                if (!tiposOk.test(file.name)) {
+                    alert('Arquivo não permitido: ' + file.name + '. Envie apenas PDF ou fotos.');
+                    continue;
+                }
+                if (file.size / (1024 * 1024) > LIMITE_ARQUIVO_MB) {
+                    alert('O arquivo "' + file.name + '" passa de ' + LIMITE_ARQUIVO_MB + 'MB. Envie um arquivo menor.');
+                    continue;
+                }
+                const totalAtual = arquivosSelecionados.reduce((s, f) => s + f.size, 0) + file.size;
+                if (totalAtual / (1024 * 1024) > LIMITE_TOTAL_MB) {
+                    alert('O total de anexos ultrapassaria ' + LIMITE_TOTAL_MB + 'MB (1GB). Remova algum arquivo antes de adicionar mais.');
+                    continue;
+                }
+                arquivosSelecionados.push(file);
+            }
+            inputArquivos.value = '';
+            renderizarListaArquivos();
+        }
+
+        function removerArquivo(idx) {
+            arquivosSelecionados.splice(idx, 1);
+            renderizarListaArquivos();
+        }
+
+        function renderizarListaArquivos() {
+            const lista = document.getElementById('listaArquivos');
+            lista.innerHTML = '';
+            arquivosSelecionados.forEach((file, idx) => {
+                const div = document.createElement('div');
+                div.className = 'file-row flex items-center justify-between bg-gray-50 border rounded-lg px-3 py-2 text-sm';
+                div.innerHTML =
+                    '<span class="truncate flex items-center gap-2"><i class="fa-solid ' +
+                    (file.type.includes('pdf') ? 'fa-file-pdf text-red-500' : 'fa-file-image text-blue-500') +
+                    '"></i> ' + file.name + ' <span class="text-gray-400">(' + (file.size / 1024 / 1024).toFixed(1) + 'MB)</span></span>' +
+                    '<button type="button" class="text-red-500 hover:text-red-700 ml-2" onclick="removerArquivo(' + idx + ')"><i class="fa-solid fa-xmark"></i></button>';
+                lista.appendChild(div);
+            });
+            const totalMB = (arquivosSelecionados.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(1);
+            document.getElementById('totalArquivos').textContent =
+                arquivosSelecionados.length ? (arquivosSelecionados.length + ' arquivo(s) — ' + totalMB + 'MB no total') : '';
+        }
+
+        // --- Envio ---
+        document.getElementById('formSolicitacao').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const nomeCompleto = document.getElementById('nomeCompleto').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const ministerio = document.getElementById('ministerio').value;
+            const outroMinisterio = document.getElementById('outroMinisterio').value.trim();
+            const campoSetor = document.getElementById('campoSetor').value;
+            const tipoEl = document.querySelector('input[name="tipoSolicitacao"]:checked');
+            const descricao = document.getElementById('descricao').value.trim();
+
+            if (!nomeCompleto || !telefone || !email || !ministerio) {
+                return alert('Preencha nome, telefone, e-mail e ministério.');
+            }
+            if (ministerio === 'OUTRO' && !outroMinisterio) {
+                return alert('Informe o nome do seu ministério.');
+            }
+            if (ministerio === 'ADSA BRASIL' && !campoSetor) {
+                return alert('Selecione o Campo/Setor da ADSA Brasil.');
+            }
+            if (!tipoEl) {
+                return alert('Selecione o tipo de solicitação.');
+            }
+            if (tipoEl.value !== 'ATUALIZACAO_FOTO' && !descricao) {
+                return alert('Descreva sua solicitação.');
+            }
+            if (tipoEl.value === 'ATUALIZACAO_FOTO' && arquivosSelecionados.length === 0) {
+                return alert('Para Atualização de Foto, anexe ao menos uma foto.');
+            }
+            if (API_URL.indexOf('COLE_AQUI') === 0) {
+                return alert('Configuração pendente: cole a URL do Apps Script na constante API_URL do arquivo.');
+            }
+
+            const btn = document.getElementById('btnEnviar');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Enviando...';
+            mostrarLoading('Enviando seus dados...');
+
+            try {
+                // 1) cria a solicitação (sem arquivos)
+                const respCriar = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'criarSolicitacao',
+                        nomeCompleto, telefone, email, ministerio,
+                        outroMinisterio, campoSetor,
+                        tipoSolicitacao: tipoEl.value,
+                        descricao
+                    })
+                });
+                const dataCriar = await respCriar.json();
+                if (!dataCriar.ok) throw new Error(dataCriar.error || 'Erro ao registrar solicitação.');
+
+                const protocolo = dataCriar.protocolo;
+                const pastaId = dataCriar.pastaId;
+
+                // 2) envia cada anexo em uma requisição separada
+                for (let i = 0; i < arquivosSelecionados.length; i++) {
+                    const file = arquivosSelecionados[i];
+                    mostrarLoading('Enviando anexo ' + (i + 1) + ' de ' + arquivosSelecionados.length + ': ' + file.name);
+
+                    const fd = new FormData();
+                    fd.append('action', 'uploadAnexo');
+                    fd.append('protocolo', protocolo);
+                    fd.append('pastaId', pastaId);
+                    fd.append('arquivo', file, file.name);
+
+                    const respUpload = await fetch(API_URL, { method: 'POST', body: fd });
+                    const dataUpload = await respUpload.json();
+                    if (!dataUpload.ok) throw new Error(dataUpload.error || ('Falha ao enviar ' + file.name));
+                }
+
+                // 3) finaliza (dispara os e-mails)
+                mostrarLoading('Finalizando e enviando e-mails...');
+                const respFinal = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'finalizarSolicitacao', protocolo })
+                });
+                const dataFinal = await respFinal.json();
+                if (!dataFinal.ok) throw new Error(dataFinal.error || 'Erro ao finalizar solicitação.');
+
+                esconderLoading();
+                document.getElementById('protocoloExibido').textContent = protocolo;
+                const modal = document.getElementById('successModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+
+            } catch (err) {
+                console.error(err);
+                esconderLoading();
+                alert('Ocorreu um erro: ' + err.message + '\nTente novamente ou fale com a organização pelo WhatsApp.');
+                btn.disabled = false;
+                btn.innerHTML = 'ENVIAR SOLICITAÇÃO <i class="fa-solid fa-paper-plane"></i>';
+            }
+        });
+
+        function mostrarLoading(texto) {
+            document.getElementById('loadingStatus').textContent = texto;
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+        function esconderLoading() {
+            const overlay = document.getElementById('loadingOverlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+        }
+    </script>
+</body>
+</html>
