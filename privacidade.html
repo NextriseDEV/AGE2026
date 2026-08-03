@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de Privacidade — CONADIBE 2026</title>
+<meta name="description" content="Política de Privacidade e Cookies do portal CONADIBE 2026.">
+<link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --conadibe-blue: #0d2d5a;
+        --conadibe-blue-light: #1e5fbf;
+        --conadibe-green: #0e9f6e;
+        --conadibe-green-dark: #0b7a55;
+    }
+    body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+    .conadibe-blue { color: var(--conadibe-blue); }
+    .bg-conadibe-blue { background-color: var(--conadibe-blue); }
+    .conadibe-green { color: var(--conadibe-green); }
+    .bg-conadibe-green { background-color: var(--conadibe-green); }
+    .hover-bg-green:hover { background-color: var(--conadibe-green-dark); }
+
+    .toggle-switch { position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; cursor:pointer; inset:0; background:#cbd5e1; border-radius:999px; transition:.2s; }
+    .toggle-slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+    input:checked + .toggle-slider { background: var(--conadibe-green); }
+    input:checked + .toggle-slider:before { transform: translateX(18px); }
+    input:disabled + .toggle-slider { opacity:.5; cursor:not-allowed; }
+
+    #cookieBanner { transform: translateY(120%); transition: transform .4s ease; }
+    #cookieBanner.show { transform: translateY(0); }
+
+    .policy-section h2 { scroll-margin-top: 90px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ============================== HEADER ============================== -->
+<header class="bg-white/95 backdrop-blur border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-16">
+            <a href="index.html" class="flex items-center gap-2 flex-shrink-0">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" alt="Logo CONADIBE" class="h-9 w-9 rounded-full object-cover">
+                <span class="font-extrabold conadibe-blue text-lg tracking-tight">CONADIBE</span>
+            </a>
+            <a href="index.html" class="text-sm font-semibold text-gray-600 hover:text-conadibe-blue flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i> <span class="hidden sm:inline">Voltar ao início</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- ============================== CONTEÚDO ============================== -->
+<main class="max-w-4xl mx-auto px-6 py-12">
+    <p class="text-xs font-bold conadibe-green uppercase tracking-widest mb-2">Transparência e Proteção de Dados</p>
+    <h1 class="text-3xl md:text-4xl font-extrabold conadibe-blue mb-3">Política de Privacidade e Cookies</h1>
+    <p class="text-sm text-gray-400 mb-10">Última atualização: 03 de agosto de 2026</p>
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-10 space-y-10 text-gray-600 leading-relaxed text-sm">
+
+        <section class="policy-section">
+            <p>
+                A CONADIBE (Convenção/Conferência) respeita a sua privacidade e está comprometida em proteger os dados
+                pessoais de ministros, obreiros e demais participantes que utilizam este portal. Esta Política de
+                Privacidade explica, de forma clara e em conformidade com a Lei Geral de Proteção de Dados Pessoais
+                (Lei nº 13.709/2018 — LGPD), quais dados coletamos, para que finalidades os utilizamos, por quanto
+                tempo os armazenamos e quais são os seus direitos como titular dos dados.
+            </p>
+        </section>
+
+        <section class="policy-section" id="dados-coletados">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-database conadibe-green mr-2"></i>1. Quais dados coletamos</h2>
+            <p class="mb-3">Coletamos dados fornecidos diretamente por você ao utilizar as funcionalidades do portal, como a Área de Solicitações e o Check-in, entre eles:</p>
+            <ul class="list-disc pl-5 space-y-1.5">
+                <li>Nome completo, telefone/WhatsApp e e-mail;</li>
+                <li>Ministério de vínculo (AD Tempo de Deus, ADSA Brasil ou outro) e, quando aplicável, Campo/Setor;</li>
+                <li>Descrição da solicitação enviada (correção de dados, reenvio de credencial/certificado, atualização cadastral, atualização de foto ou outras solicitações);</li>
+                <li>Documentos e fotos anexados voluntariamente para viabilizar o atendimento da solicitação (ex.: foto para credencial, documentos para correção de dados);</li>
+                <li>Dados técnicos básicos de navegação (como data e hora de acesso), coletados apenas quando há consentimento para cookies de desempenho.</li>
+            </ul>
+        </section>
+
+        <section class="policy-section" id="finalidade">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-bullseye conadibe-green mr-2"></i>2. Para que utilizamos seus dados</h2>
+            <ul class="list-disc pl-5 space-y-1.5">
+                <li>Processar e responder às solicitações enviadas pela Área de Solicitações;</li>
+                <li>Emitir, corrigir ou reenviar credenciais e certificados;</li>
+                <li>Entrar em contato com o solicitante por e-mail, telefone ou WhatsApp para dar andamento ao atendimento;</li>
+                <li>Manter o cadastro de ministros e obreiros atualizado junto à Secretaria Geral;</li>
+                <li>Cumprir obrigações organizacionais relacionadas à Conferência Bíblica CONADIBE.</li>
+            </ul>
+        </section>
+
+        <section class="policy-section" id="armazenamento">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-shield-halved conadibe-green mr-2"></i>3. Armazenamento e segurança</h2>
+            <p>
+                Os dados enviados por meio dos formulários são armazenados em ambiente controlado pela Secretaria Geral
+                da CONADIBE (planilhas e armazenamento em nuvem de acesso restrito). Documentos e fotos anexados às
+                solicitações são mantidos em pastas privadas, com acesso concedido exclusivamente à equipe responsável
+                pelo atendimento — eles não são publicados nem compartilhados por meio de links públicos. Adotamos
+                medidas técnicas e organizacionais razoáveis para proteger seus dados contra acessos não autorizados,
+                perda, alteração ou divulgação indevida.
+            </p>
+        </section>
+
+        <section class="policy-section" id="compartilhamento">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-people-arrows conadibe-green mr-2"></i>4. Compartilhamento de dados</h2>
+            <p>
+                Não vendemos nem compartilhamos seus dados pessoais com terceiros para fins comerciais. Seus dados são
+                acessados somente pela equipe da Secretaria Geral da CONADIBE, estritamente para as finalidades
+                descritas nesta política, podendo ser compartilhados com prestadores de serviço de tecnologia
+                (como provedores de hospedagem e planilhas em nuvem) apenas na medida necessária para o funcionamento
+                do portal.
+            </p>
+        </section>
+
+        <section class="policy-section" id="direitos">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-user-shield conadibe-green mr-2"></i>5. Seus direitos como titular</h2>
+            <p class="mb-3">Nos termos da LGPD, você pode, a qualquer momento, solicitar:</p>
+            <ul class="list-disc pl-5 space-y-1.5">
+                <li>Confirmação da existência de tratamento de seus dados;</li>
+                <li>Acesso, correção ou atualização de dados incompletos, inexatos ou desatualizados;</li>
+                <li>Anonimização, bloqueio ou eliminação de dados desnecessários ou tratados em desconformidade com a lei;</li>
+                <li>Informações sobre com quem seus dados foram compartilhados;</li>
+                <li>Revogação do consentimento previamente concedido.</li>
+            </ul>
+            <p class="mt-3">
+                Para exercer qualquer um desses direitos, entre em contato pelo WhatsApp da organização ou pela
+                Área de Solicitações, opção "Outras Solicitações".
+            </p>
+        </section>
+
+        <section class="policy-section" id="cookies">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-cookie-bite conadibe-green mr-2"></i>6. Uso de cookies</h2>
+            <p class="mb-3">
+                Este portal utiliza cookies para garantir o funcionamento adequado do site e, mediante seu
+                consentimento, para fins de desempenho e marketing. Você pode gerenciar suas preferências a
+                qualquer momento clicando no botão abaixo.
+            </p>
+            <div class="grid sm:grid-cols-3 gap-4 mt-4">
+                <div class="bg-gray-50 rounded-xl border border-gray-100 p-4">
+                    <p class="font-semibold text-gray-700 text-sm mb-1"><i class="fa-solid fa-lock conadibe-blue mr-1"></i> Necessários</p>
+                    <p class="text-xs text-gray-400">Essenciais para o funcionamento do site. Sempre ativos.</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl border border-gray-100 p-4">
+                    <p class="font-semibold text-gray-700 text-sm mb-1"><i class="fa-solid fa-chart-line conadibe-green mr-1"></i> Desempenho</p>
+                    <p class="text-xs text-gray-400">Ajudam a entender como o site é utilizado (ex.: Google Analytics).</p>
+                </div>
+                <div class="bg-gray-50 rounded-xl border border-gray-100 p-4">
+                    <p class="font-semibold text-gray-700 text-sm mb-1"><i class="fa-solid fa-bullhorn conadibe-green mr-1"></i> Marketing</p>
+                    <p class="text-xs text-gray-400">Usados para anúncios e campanhas relevantes (ex.: Google Ads).</p>
+                </div>
+            </div>
+            <button onclick="abrirPreferenciasCookies()" class="mt-6 inline-flex items-center gap-2 bg-conadibe-blue text-white text-sm font-bold px-5 py-2.5 rounded-full shadow hover:opacity-90 transition">
+                <i class="fa-solid fa-sliders"></i> Gerenciar minhas preferências de cookies
+            </button>
+        </section>
+
+        <section class="policy-section" id="alteracoes">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-file-pen conadibe-green mr-2"></i>7. Alterações desta política</h2>
+            <p>
+                Esta Política de Privacidade pode ser atualizada periodicamente para refletir melhorias no portal ou
+                mudanças na legislação aplicável. Recomendamos a consulta ocasional desta página. A data da última
+                atualização está sempre indicada no topo deste documento.
+            </p>
+        </section>
+
+        <section class="policy-section" id="contato">
+            <h2 class="text-xl font-bold conadibe-blue mb-3"><i class="fa-solid fa-envelope conadibe-green mr-2"></i>8. Contato</h2>
+            <p>
+                Dúvidas sobre esta política ou sobre o tratamento dos seus dados podem ser enviadas para a Secretaria
+                Geral da CONADIBE pelo WhatsApp oficial ou pela
+                <a href="solicitacoes.html" class="conadibe-green underline font-semibold">Área de Solicitações</a>.
+            </p>
+        </section>
+    </div>
+</main>
+
+<!-- ============================== FOOTER ============================== -->
+<footer class="bg-conadibe-blue text-white py-8">
+    <div class="max-w-4xl mx-auto px-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-blue-100/60">
+        <p>© 2026 CONADIBE — Secretaria Geral. Todos os direitos reservados.</p>
+        <a href="index.html" class="hover:text-white">Voltar ao início</a>
+    </div>
+</footer>
+
+<!-- ============================== COOKIE BANNER (LGPD) ============================== -->
+<div id="cookieBanner" class="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] p-4 sm:p-5">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-4">
+        <div class="flex items-start gap-3 flex-1">
+            <i class="fa-solid fa-cookie-bite conadibe-green text-xl mt-0.5"></i>
+            <p class="text-sm text-gray-600">
+                Usamos cookies para melhorar sua experiência no site. Você pode aceitar todos, personalizar por categoria ou rejeitar os não essenciais.
+            </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-shrink-0">
+            <button onclick="rejeitarCookies()" class="order-3 sm:order-1 text-sm font-semibold text-gray-500 hover:text-gray-700 px-4 py-2.5">Rejeitar</button>
+            <button onclick="abrirPreferenciasCookies()" class="order-2 border border-gray-300 text-sm font-semibold text-gray-600 hover:bg-gray-50 px-4 py-2.5 rounded-full">Personalizar</button>
+            <button onclick="aceitarTodosCookies()" class="order-1 sm:order-3 bg-conadibe-green hover-bg-green text-white text-sm font-bold px-5 py-2.5 rounded-full shadow transition">Aceitar Todos</button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================== MODAL PREFERÊNCIAS DE COOKIES ============================== -->
+<div id="modalCookies" class="hidden fixed inset-0 bg-black/60 z-[110] items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="p-5 border-b flex justify-between items-center">
+            <h3 class="font-bold conadibe-blue"><i class="fa-solid fa-cookie-bite conadibe-green mr-1"></i> Preferências de Cookies</h3>
+            <button onclick="fecharModalCookies()" class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="font-semibold text-sm text-gray-700">Necessários</p>
+                    <p class="text-xs text-gray-400 mt-1">Essenciais para o funcionamento do site. Não podem ser desativados.</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked disabled>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="font-semibold text-sm text-gray-700">Desempenho / Analytics</p>
+                    <p class="text-xs text-gray-400 mt-1">Nos ajudam a entender como o site é utilizado (ex: Google Analytics).</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="cookieDesempenho">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="font-semibold text-sm text-gray-700">Marketing</p>
+                    <p class="text-xs text-gray-400 mt-1">Usados para anúncios e campanhas relevantes (ex: Google Ads, Meta Ads).</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="cookieMarketing">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="p-5 border-t flex gap-2">
+            <button onclick="rejeitarCookies()" class="flex-1 text-sm font-semibold text-gray-500 hover:text-gray-700">Rejeitar Todos</button>
+            <button onclick="salvarPreferenciasCookies()" class="flex-1 bg-conadibe-blue text-white text-sm font-bold py-2.5 rounded-full">Salvar Preferências</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===================================================================
+    // COOKIES (LGPD) — mesma lógica/chave usada em index.html, para que
+    // a preferência salva aqui valha para todo o site.
+    // ===================================================================
+    const COOKIE_CONSENT_KEY = 'conadibe_cookie_consent';
+
+    function obterConsentimento() {
+        try { return JSON.parse(localStorage.getItem(COOKIE_CONSENT_KEY)); }
+        catch (e) { return null; }
+    }
+    function salvarConsentimento(consent) {
+        const registro = Object.assign({}, consent, { necessarios: true, dataHora: new Date().toISOString() });
+        localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(registro));
+        aplicarConsentimento(registro);
+        esconderBannerCookies();
+        fecharModalCookies();
+    }
+    function aceitarTodosCookies() {
+        salvarConsentimento({ desempenho: true, marketing: true });
+    }
+    function rejeitarCookies() {
+        salvarConsentimento({ desempenho: false, marketing: false });
+    }
+    function abrirPreferenciasCookies() {
+        const atual = obterConsentimento() || { desempenho: false, marketing: false };
+        document.getElementById('cookieDesempenho').checked = !!atual.desempenho;
+        document.getElementById('cookieMarketing').checked = !!atual.marketing;
+        const modal = document.getElementById('modalCookies');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    function fecharModalCookies() {
+        const modal = document.getElementById('modalCookies');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    function salvarPreferenciasCookies() {
+        salvarConsentimento({
+            desempenho: document.getElementById('cookieDesempenho').checked,
+            marketing: document.getElementById('cookieMarketing').checked
+        });
+    }
+    function esconderBannerCookies() {
+        document.getElementById('cookieBanner').classList.remove('show');
+    }
+
+    // ===================================================================
+    // ESPAÇO RESERVADO — carregamento condicional de tags do Google
+    // (mesmo padrão do index.html — preencha com os IDs reais quando tiver)
+    // ===================================================================
+    function aplicarConsentimento(consent) {
+        if (consent.desempenho) {
+            // --- Google Analytics / Tag Manager (Desempenho) ---
+        }
+        if (consent.marketing) {
+            // --- Google Ads / Meta Pixel / outras tags de marketing ---
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const consent = obterConsentimento();
+        if (consent) {
+            aplicarConsentimento(consent);
+        } else {
+            setTimeout(() => document.getElementById('cookieBanner').classList.add('show'), 600);
+        }
+    });
+</script>
+</body>
+</html>
