@@ -150,22 +150,24 @@
                     <textarea id="descricao" class="input-field mt-1" rows="4" placeholder="Selecione o tipo de solicitação acima para ver instruções específicas." required></textarea>
                 </div>
 
-                <!-- ANEXOS -->
-                <h2 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-full bg-conadibe-blue text-white text-xs flex items-center justify-center">3</span>
-                    Anexos <span id="anexoObrigatorio" class="text-red-500 text-sm hidden">*</span>
-                    <span class="text-xs font-normal text-gray-400" id="anexoOpcionalTag">(opcional)</span>
-                </h2>
-                <p class="text-xs text-gray-500 mb-3">Apenas PDF ou fotos. Até 25MB por arquivo, até 1GB no total.</p>
+                <!-- ANEXOS (só aparece para Envio de Credencial/Certificado e Atualização de Foto) -->
+                <div id="secaoAnexos" class="hidden">
+                    <h2 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-conadibe-blue text-white text-xs flex items-center justify-center">3</span>
+                        Anexos <span id="anexoObrigatorio" class="text-red-500 text-sm hidden">*</span>
+                        <span class="text-xs font-normal text-gray-400" id="anexoOpcionalTag">(opcional)</span>
+                    </h2>
+                    <p class="text-xs text-gray-500 mb-3">Apenas PDF ou fotos. Até 25MB por arquivo, até 1GB no total.</p>
 
-                <div class="dropzone rounded-xl p-6 text-center mb-3 cursor-pointer" id="dropzone" onclick="document.getElementById('inputArquivos').click()">
-                    <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
-                    <p class="text-sm text-gray-600 font-semibold">Clique para escolher arquivos</p>
-                    <p class="text-xs text-gray-400">ou arraste e solte aqui — PDF, JPG, PNG</p>
-                    <input type="file" id="inputArquivos" class="hidden" accept=".pdf,image/*" multiple>
+                    <div class="dropzone rounded-xl p-6 text-center mb-3 cursor-pointer" id="dropzone" onclick="document.getElementById('inputArquivos').click()">
+                        <i class="fa-solid fa-cloud-arrow-up text-3xl text-gray-400 mb-2"></i>
+                        <p class="text-sm text-gray-600 font-semibold">Clique para escolher arquivos</p>
+                        <p class="text-xs text-gray-400">ou arraste e solte aqui — PDF, JPG, PNG</p>
+                        <input type="file" id="inputArquivos" class="hidden" accept=".pdf,image/*" multiple>
+                    </div>
+                    <div id="listaArquivos" class="space-y-2 mb-2"></div>
+                    <p class="text-xs text-gray-500 mb-8" id="totalArquivos"></p>
                 </div>
-                <div id="listaArquivos" class="space-y-2 mb-2"></div>
-                <p class="text-xs text-gray-500 mb-8" id="totalArquivos"></p>
 
                 <button type="submit" id="btnEnviar" class="w-full bg-green-600 hover:bg-green-700 text-white py-4 rounded-xl font-bold shadow-lg transition flex justify-center items-center gap-2">
                     ENVIAR SOLICITAÇÃO <i class="fa-solid fa-paper-plane"></i>
@@ -215,6 +217,9 @@
         const LIMITE_ARQUIVO_MB = 25;
         const LIMITE_TOTAL_MB = 1024;
 
+        // Anexo só faz sentido pra estes dois tipos de solicitação
+        const TIPOS_COM_ANEXO = ['ENVIO_CREDENCIAL', 'ATUALIZACAO_FOTO'];
+
         const TEXTOS_DESCRICAO = {
             CORRECAO_DADOS: 'Descreva o que precisa ser corrigido (ex: nome grafado errado, CPF/RG incorretos etc.)',
             ENVIO_CREDENCIAL: 'Explique o motivo: retificação de dados, perda ou extravio da credencial/certificado.',
@@ -225,6 +230,13 @@
 
         let camposAdsaCarregados = false;
         let arquivosSelecionados = [];
+
+        const fileToBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+        });
 
         $(document).ready(function () {
             $('.phone-mask').mask('(00) 00000-0000');
@@ -274,6 +286,14 @@
                 } else {
                     document.getElementById('descricao').setAttribute('required', 'required');
                     document.getElementById('labelDescricao').innerHTML = 'Descreva sua solicitação <span class="text-red-500">*</span>';
+                }
+
+                // Anexos: só mostra o bloco pra Envio de Credencial/Certificado e Atualização de Foto
+                const mostraAnexos = TIPOS_COM_ANEXO.includes(this.value);
+                document.getElementById('secaoAnexos').classList.toggle('hidden', !mostraAnexos);
+                if (!mostraAnexos && arquivosSelecionados.length) {
+                    arquivosSelecionados = [];
+                    renderizarListaArquivos();
                 }
             });
         });
@@ -393,18 +413,25 @@
                 const protocolo = dataCriar.protocolo;
                 const pastaId = dataCriar.pastaId;
 
-                // 2) envia cada anexo em uma requisição separada
+                // 2) envia cada anexo em uma requisição separada (base64 dentro de JSON —
+                //    o Apps Script não consegue ler multipart/form-data vindo de fetch externo)
                 for (let i = 0; i < arquivosSelecionados.length; i++) {
                     const file = arquivosSelecionados[i];
                     mostrarLoading('Enviando anexo ' + (i + 1) + ' de ' + arquivosSelecionados.length + ': ' + file.name);
 
-                    const fd = new FormData();
-                    fd.append('action', 'uploadAnexo');
-                    fd.append('protocolo', protocolo);
-                    fd.append('pastaId', pastaId);
-                    fd.append('arquivo', file, file.name);
+                    const base64Completo = await fileToBase64(file);
+                    const base64Data = base64Completo.split(',')[1] || '';
 
-                    const respUpload = await fetch(API_URL, { method: 'POST', body: fd });
+                    const respUpload = await fetch(API_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: 'uploadAnexo',
+                            protocolo, pastaId,
+                            fileName: file.name,
+                            mimeType: file.type || 'application/octet-stream',
+                            base64Data
+                        })
+                    });
                     const dataUpload = await respUpload.json();
                     if (!dataUpload.ok) throw new Error(dataUpload.error || ('Falha ao enviar ' + file.name));
                 }
