@@ -1,220 +1,625 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Inscrições - CONADIBE 2026</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CONADIBE 2026 — Convenção Nacional</title>
+<meta name="description" content="Portal oficial da CONADIBE — Conferência Bíblica 2026, Ministros, Obreiros e Secretaria Geral.">
+<link rel="icon" type="image/x-icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        
-        /* Cores CONADIBE */
-        .conadibe-blue { color: #0d2d5a; }
-        .bg-conadibe-blue { background-color: #0d2d5a; }
-        .conadibe-gold { color: #d4a017; }
-        .bg-conadibe-gold { background-color: #d4a017; }
-        .border-gold { border-color: #d4a017; }
-        
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+<!-- =====================================================================
+     ESPAÇO RESERVADO PARA TAGS DO GOOGLE (Analytics / Tag Manager / Ads)
+     Não coloque nada fixo aqui ainda — os scripts só devem ser inseridos
+     dinamicamente depois que o usuário aceitar cookies de desempenho,
+     através da função aplicarConsentimento() lá no final do arquivo.
+     ===================================================================== -->
 
-        /* Animações Splash */
-        .fade-out { animation: fadeOut 0.5s forwards; }
-        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+<style>
+    :root {
+        --conadibe-blue: #0d2d5a;
+        --conadibe-blue-light: #1e5fbf;
+        --conadibe-green: #0e9f6e;
+        --conadibe-green-dark: #0b7a55;
+    }
+    body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+    .conadibe-blue { color: var(--conadibe-blue); }
+    .bg-conadibe-blue { background-color: var(--conadibe-blue); }
+    .conadibe-green { color: var(--conadibe-green); }
+    .bg-conadibe-green { background-color: var(--conadibe-green); }
+    .hover-bg-green:hover { background-color: var(--conadibe-green-dark); }
+    .border-green-brand { border-color: var(--conadibe-green); }
 
-        /* --- ANIMAÇÃO DO BOTÃO FLUTUANTE --- */
-        @keyframes reveal-text {
-            0%, 20% { max-width: 0; opacity: 0; margin-left: 0; }
-            30%, 85% { max-width: 160px; opacity: 1; margin-left: 0.5rem; }
-            100% { max-width: 0; opacity: 0; margin-left: 0; }
-        }
-        @keyframes pulse-gold {
-            0% { box-shadow: 0 0 0 0 rgba(212, 160, 23, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(212, 160, 23, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(212, 160, 23, 0); }
-        }
-        .btn-floating { animation: pulse-gold 2s infinite; }
-        .btn-text-anim {
-            overflow: hidden; white-space: nowrap; display: inline-block;
-            animation: reveal-text 5s infinite ease-in-out;
-        }
+    .hero { background: radial-gradient(circle at 10% -10%, #163a6b 0%, #0d2d5a 45%, #082042 100%); }
+    .blob { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: 0.3; pointer-events: none; }
 
-        /* Chat Styles */
-        .chat-window { display: none; position: fixed; bottom: 100px; right: 20px; width: 320px; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); z-index: 49; overflow: hidden; }
-        .chat-header { background: #0d2d5a; color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .chat-body { padding: 15px; max-height: 350px; overflow-y: auto; }
-        .chat-option { background: #f3f4f6; padding: 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; border-left: 3px solid transparent; }
-        .chat-option:hover { background: #e2e8f0; border-left: 3px solid #d4a017; }
-        .chat-answer { background: #f0f9ff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9rem; color: #0d2d5a; display: none; border-left: 4px solid #d4a017; }
-    </style>
+    .fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+    @keyframes fadeInUp { from { opacity:0; transform: translateY(18px);} to {opacity:1; transform:translateY(0);} }
+    .delay-1 { animation-delay:.08s; } .delay-2 { animation-delay:.16s; } .delay-3 { animation-delay:.24s; }
+
+    /* Dropdown de navegação */
+    .nav-dropdown { display:none; position:absolute; top:100%; left:0; min-width:240px; }
+    .nav-item.open .nav-dropdown { display:block; }
+    .nav-caret { transition: transform .2s; }
+    .nav-item.open .nav-caret { transform: rotate(180deg); }
+
+    /* Menu mobile */
+    .mobile-submenu { max-height:0; overflow:hidden; transition: max-height .25s ease; }
+    .mobile-submenu.open { max-height: 300px; }
+
+    .card-hover { transition:.25s; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 16px 30px -12px rgba(13,45,90,.18); }
+
+    /* Botão flutuante de dúvidas */
+    @keyframes pulse-green { 0%{box-shadow:0 0 0 0 rgba(14,159,110,.55);} 70%{box-shadow:0 0 0 14px rgba(14,159,110,0);} 100%{box-shadow:0 0 0 0 rgba(14,159,110,0);} }
+    .btn-floating { animation: pulse-green 2.5s infinite; }
+    @keyframes reveal-text { 0%,20%{max-width:0;opacity:0;margin-left:0;} 30%,85%{max-width:170px;opacity:1;margin-left:.5rem;} 100%{max-width:0;opacity:0;margin-left:0;} }
+    .btn-text-anim { overflow:hidden; white-space:nowrap; display:inline-block; animation: reveal-text 6s infinite ease-in-out; }
+
+    .chat-window { display:none; position:fixed; bottom:100px; right:20px; width:320px; max-width:calc(100vw - 32px); background:#fff; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,.2); z-index:70; overflow:hidden; }
+    .chat-header { background: var(--conadibe-blue); color:#fff; padding:15px; font-weight:bold; display:flex; justify-content:space-between; align-items:center; }
+    .chat-body { padding:15px; max-height:360px; overflow-y:auto; }
+    .chat-option { background:#f3f4f6; padding:12px; margin-bottom:8px; border-radius:8px; cursor:pointer; transition:.2s; font-size:.9rem; border-left:3px solid transparent; }
+    .chat-option:hover { background:#e2e8f0; border-left:3px solid var(--conadibe-green); }
+    .chat-answer { background:#f0fdf9; padding:12px; border-radius:8px; margin-bottom:10px; font-size:.9rem; color:var(--conadibe-blue); display:none; border-left:4px solid var(--conadibe-green); }
+
+    /* Accordion FAQ da seção */
+    .faq-item.open .faq-answer { max-height: 200px; padding-top: .5rem; }
+    .faq-item .faq-answer { max-height:0; overflow:hidden; transition:max-height .25s ease; }
+    .faq-item.open .faq-caret { transform: rotate(180deg); }
+
+    /* Cookie banner */
+    #cookieBanner { transform: translateY(120%); transition: transform .4s ease; }
+    #cookieBanner.show { transform: translateY(0); }
+
+    .toggle-switch { position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; cursor:pointer; inset:0; background:#cbd5e1; border-radius:999px; transition:.2s; }
+    .toggle-slider:before { position:absolute; content:""; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:.2s; }
+    input:checked + .toggle-slider { background: var(--conadibe-green); }
+    input:checked + .toggle-slider:before { transform: translateX(18px); }
+    input:disabled + .toggle-slider { opacity:.5; cursor:not-allowed; }
+</style>
 </head>
-<body class="min-h-screen flex flex-col items-center relative">
+<body class="min-h-screen">
 
-    <div id="splash-overlay" class="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-sm">
-        <div class="max-w-4xl w-full bg-white rounded-lg shadow-2xl overflow-hidden relative animate-[bounce_1s_ease-out]">
-            
-            <button onclick="fecharSplash()" class="absolute top-2 right-2 md:top-4 md:right-4 bg-gray-200 hover:bg-red-500 hover:text-white text-gray-600 rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center transition font-bold shadow-lg z-10">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+<!-- ============================== HEADER / NAV ============================== -->
+<header class="bg-white/95 backdrop-blur border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex items-center justify-between h-16">
+            <a href="#top" class="flex items-center gap-2 flex-shrink-0">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" alt="Logo CONADIBE" class="h-9 w-9 rounded-full object-cover">
+                <span class="font-extrabold conadibe-blue text-lg tracking-tight">CONADIBE</span>
+            </a>
 
-            <img src="https://wasabi.e-inscricao.com/uploads/hotsite/v2/cover/1765469952_8a635241-0681-4afe-90c2-a1c477e71ff3.png" 
-                 alt="Conferência Bíblica CONADIBE 2026" 
-                 class="w-full h-auto object-cover">
-            
-            <div class="p-6 bg-gray-50 flex flex-col md:flex-row gap-4 justify-center items-center border-t border-gray-200">
-                <p class="text-gray-600 text-sm font-semibold md:hidden mb-2">Selecione uma opção:</p>
-                
-                <a href="https://www.e-inscricao.com/conadibe/conferencia-biblica-2026" target="_blank" 
-                   class="w-full md:w-auto px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-2">
-                   <i class="fa-regular fa-credit-card"></i> PAGAR INSCRIÇÃO
+            <!-- NAV DESKTOP -->
+            <nav class="hidden lg:flex items-center gap-1">
+                <a href="#top" class="px-3 py-2 text-sm font-semibold text-gray-600 hover:text-conadibe-blue conadibe-blue-hover rounded-lg hover:bg-gray-50">Início</a>
+
+                <div class="nav-item relative">
+                    <button class="nav-trigger px-3 py-2 text-sm font-semibold text-gray-600 hover:text-conadibe-blue rounded-lg hover:bg-gray-50 flex items-center gap-1.5" onclick="toggleNavDropdown(this)">
+                        Sobre <i class="fa-solid fa-chevron-down text-[10px] nav-caret"></i>
+                    </button>
+                    <div class="nav-dropdown bg-white rounded-xl shadow-2xl border border-gray-100 py-2 mt-2">
+                        <a href="#sobre" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-conadibe-blue">Quem Somos</a>
+                        <a href="#ministerios" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-conadibe-blue">Nossos Ministérios</a>
+                    </div>
+                </div>
+
+                <div class="nav-item relative">
+                    <button class="nav-trigger px-3 py-2 text-sm font-semibold text-gray-600 hover:text-conadibe-blue rounded-lg hover:bg-gray-50 flex items-center gap-1.5" onclick="toggleNavDropdown(this)">
+                        Conferência 2026 <i class="fa-solid fa-chevron-down text-[10px] nav-caret"></i>
+                    </button>
+                    <div class="nav-dropdown bg-white rounded-xl shadow-2xl border border-gray-100 py-2 mt-2">
+                        <a href="#conferencia" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-conadibe-blue">Data e Setores</a>
+                        <a href="#faq" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-conadibe-blue">Perguntas Frequentes</a>
+                    </div>
+                </div>
+
+                <div class="nav-item relative">
+                    <button class="nav-trigger px-3 py-2 text-sm font-semibold text-gray-600 hover:text-conadibe-blue rounded-lg hover:bg-gray-50 flex items-center gap-1.5" onclick="toggleNavDropdown(this)">
+                        Ministros <i class="fa-solid fa-chevron-down text-[10px] nav-caret"></i>
+                    </button>
+                    <div class="nav-dropdown bg-white rounded-xl shadow-2xl border border-gray-100 py-2 mt-2">
+                        <a href="solicitacoes.html" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-conadibe-blue"><i class="fa-solid fa-headset conadibe-green mr-1"></i> Área de Solicitações</a>
+                        <a href="https://nextrisedev.github.io/AGE2026/checkin" class="block px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-conadibe-blue"><i class="fa-solid fa-qrcode conadibe-blue mr-1"></i> Fazer Check-in</a>
+                    </div>
+                </div>
+
+                <a href="#contato" class="px-3 py-2 text-sm font-semibold text-gray-600 hover:text-conadibe-blue rounded-lg hover:bg-gray-50">Contato</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a href="solicitacoes.html" class="hidden sm:flex bg-conadibe-green hover-bg-green text-white text-sm font-bold px-4 py-2.5 rounded-full shadow transition items-center gap-2">
+                    <i class="fa-solid fa-headset"></i> Solicitações
                 </a>
-
-                <button onclick="fecharSplash()" 
-                        class="w-full md:w-auto px-8 py-3 bg-conadibe-blue hover:bg-blue-900 text-white font-bold rounded-lg shadow-lg transform hover:scale-105 transition flex items-center justify-center gap-2">
-                    ACESSAR PORTAL <i class="fa-solid fa-arrow-right"></i>
+                <button id="btnMobileMenu" class="lg:hidden text-gray-600 text-xl w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-50" onclick="toggleMobileMenu()">
+                    <i class="fa-solid fa-bars"></i>
                 </button>
             </div>
         </div>
-        <p class="text-gray-400 text-xs mt-4">Toque em "Acessar Portal" para preencher sua ficha cadastral.</p>
     </div>
 
+    <!-- NAV MOBILE -->
+    <div id="mobileMenu" class="hidden lg:hidden border-t border-gray-100 bg-white">
+        <div class="px-4 py-3 space-y-1">
+            <a href="#top" class="block py-2.5 text-sm font-semibold text-gray-700">Início</a>
 
-    <div class="flex flex-col items-center justify-center flex-grow p-6 w-full">
-        
-        <div class="text-center mb-10">
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" alt="Logo CONADIBE" class="h-20 mx-auto mb-4">
-            <h1 class="text-3xl font-bold conadibe-blue">CONADIBE 2026</h1>
-            <p class="text-gray-500">Selecione sua categoria para iniciar o credenciamento</p>
+            <button class="w-full flex justify-between items-center py-2.5 text-sm font-semibold text-gray-700" onclick="toggleMobileSub(this)">
+                Sobre <i class="fa-solid fa-chevron-down text-xs"></i>
+            </button>
+            <div class="mobile-submenu pl-4">
+                <a href="#sobre" class="block py-2 text-sm text-gray-500">Quem Somos</a>
+                <a href="#ministerios" class="block py-2 text-sm text-gray-500">Nossos Ministérios</a>
+            </div>
+
+            <button class="w-full flex justify-between items-center py-2.5 text-sm font-semibold text-gray-700" onclick="toggleMobileSub(this)">
+                Conferência 2026 <i class="fa-solid fa-chevron-down text-xs"></i>
+            </button>
+            <div class="mobile-submenu pl-4">
+                <a href="#conferencia" class="block py-2 text-sm text-gray-500">Data e Setores</a>
+                <a href="#faq" class="block py-2 text-sm text-gray-500">Perguntas Frequentes</a>
+            </div>
+
+            <button class="w-full flex justify-between items-center py-2.5 text-sm font-semibold text-gray-700" onclick="toggleMobileSub(this)">
+                Ministros <i class="fa-solid fa-chevron-down text-xs"></i>
+            </button>
+            <div class="mobile-submenu pl-4">
+                <a href="solicitacoes.html" class="block py-2 text-sm text-gray-500">Área de Solicitações</a>
+                <a href="https://nextrisedev.github.io/AGE2026/checkin" class="block py-2 text-sm text-gray-500">Fazer Check-in</a>
+            </div>
+
+            <a href="#contato" class="block py-2.5 text-sm font-semibold text-gray-700">Contato</a>
+            <a href="solicitacoes.html" class="mt-2 flex justify-center bg-conadibe-green text-white text-sm font-bold py-3 rounded-full">
+                <i class="fa-solid fa-headset mr-2"></i> Área de Solicitações
+            </a>
         </div>
-
-        <div class="w-full flex flex-col items-center gap-3 mb-10">
-            <a href="https://nextrisedev.github.io/AGE2026/checkin"
-               class="bg-green-600 hover:bg-green-700 text-white text-lg font-bold py-4 px-10 rounded-full shadow-xl transition transform hover:scale-105 flex items-center gap-3 border-4 border-green-100 animate-pulse">
-                <i class="fa-solid fa-qrcode text-2xl"></i>
-                <span>JÁ SOU INSCRITO / FAZER CHECK-IN</span>
-            </a>
-            <a href="solicitacoes.html"
-               class="conadibe-blue text-sm font-semibold hover:underline flex items-center gap-2">
-                <i class="fa-solid fa-headset"></i> Sou Ministro e preciso fazer uma solicitação (correção de dados, credencial, foto...)
-            </a>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl w-full">
-            
-            <a href="geral.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-400 flex flex-col items-center text-center">
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                </div>
-                <h2 class="text-xl font-bold text-gray-800">Público Geral</h2>
-                <p class="text-sm text-gray-500 mt-2">Membros, visitantes e caravanas (Setores B e C).</p>
-                <span class="mt-auto pt-4 text-blue-600 text-sm font-semibold">Acessar →</span>
-            </a>
-
-            <a href="obreiros.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gray-600 flex flex-col items-center text-center relative overflow-hidden">
-                <div class="absolute top-0 right-0 bg-conadibe-blue text-white text-xs font-bold px-3 py-1 rounded-bl-lg">SETOR A</div>
-                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                </div>
-                <h2 class="text-xl font-bold text-gray-800">Obreiros</h2>
-                <p class="text-sm text-gray-500 mt-2">Diáconos(as) e Presbíteros para Consagração ou Reconhecimento.</p>
-                <span class="mt-auto pt-4 text-blue-600 text-sm font-semibold">Acessar →</span>
-            </a>
-
-            <a href="ministros.html" class="card-hover bg-white p-8 rounded-2xl shadow-lg border-t-4 border-gold flex flex-col items-center text-center relative overflow-hidden">
-                <div class="absolute top-0 right-0 bg-conadibe-blue text-white text-xs font-bold px-3 py-1 rounded-bl-lg">SETOR A</div>
-                <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8 conadibe-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                </div>
-                <h2 class="text-xl font-bold conadibe-blue">Ministros</h2>
-                <p class="text-sm text-gray-500 mt-2">Pastores, Evangelistas e Missionários(as).</p>
-                <span class="mt-auto pt-4 conadibe-gold text-sm font-semibold">Acessar →</span>
-            </a>
-
-        </div>
-
-        <footer class="mt-12 text-gray-400 text-sm">© 2026 CONADIBE - Secretaria Geral</footer>
     </div>
+</header>
 
-    <button onclick="toggleChat()" class="btn-floating fixed bottom-8 right-8 z-50 bg-conadibe-blue hover:bg-blue-900 text-white font-bold p-4 rounded-full shadow-2xl transition transform flex items-center justify-center group border-2 border-white">
-        <i class="fa-solid fa-question text-2xl"></i>
-        <span class="btn-text-anim text-sm text-conadibe-gold font-bold">Dúvidas? Clique aqui.</span>
-    </button>
+<!-- ============================== HERO ============================== -->
+<section id="top" class="hero relative overflow-hidden text-white">
+    <div class="blob w-72 h-72 bg-conadibe-green top-[-40px] right-[-40px]"></div>
+    <div class="blob w-96 h-96 bg-blue-400 bottom-[-100px] left-[-80px]"></div>
 
-    <div id="chatWindow" class="chat-window">
-        <div class="chat-header">
-            <span><i class="fa-regular fa-comments mr-2"></i>Dúvidas Frequentes</span>
-            <button onclick="toggleChat()" class="text-white hover:text-gray-300"><i class="fa-solid fa-xmark"></i></button>
+    <div class="relative max-w-3xl mx-auto px-6 pt-16 pb-20 text-center">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU"
+             alt="Logo CONADIBE" class="h-20 mx-auto mb-6 fade-in-up rounded-full shadow-lg">
+        <h1 class="text-4xl md:text-5xl font-extrabold tracking-tight fade-in-up delay-1">CONADIBE 2026</h1>
+        <p class="text-blue-100/80 mt-2 fade-in-up delay-1">Conferência Bíblica &middot; Secretaria Geral</p>
+
+        <div class="inline-flex items-center gap-2 bg-white/10 border border-white/15 backdrop-blur-sm text-sm font-semibold px-5 py-2.5 rounded-full mt-6 fade-in-up delay-2">
+            <i class="fa-regular fa-calendar conadibe-green"></i> 05 a 09 de Julho de 2026
         </div>
-        <div class="chat-body bg-white">
-            <p class="text-sm text-gray-500 mb-4">Olá! Como podemos te ajudar com sua inscrição?</p>
-            
-            <div id="options">
-                <div class="chat-option" onclick="showAnswer('pagamento')">Onde faço o pagamento?</div>
-                <div class="chat-option" onclick="showAnswer('data')">Qual a data do evento?</div>
-                <div class="chat-option" onclick="showAnswer('credencial')">Como recebo minha credencial?</div>
-                <div class="chat-option" onclick="showAnswer('setor')">Qual meu setor (Assento)?</div>
-                
-                <button onclick="falarOrganizador()" class="w-full mt-4 bg-green-600 text-white py-2 rounded text-sm font-bold hover:bg-green-700 flex items-center justify-center gap-2 shadow-md transition">
-                    <i class="fa-brands fa-whatsapp"></i> Falar com Organizador
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center mt-8 fade-in-up delay-3">
+            <a href="https://nextrisedev.github.io/AGE2026/checkin" class="bg-white text-conadibe-blue font-bold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-qrcode"></i> Já sou inscrito — Check-in
+            </a>
+            <a href="solicitacoes.html" class="bg-conadibe-green hover-bg-green text-white font-bold px-6 py-3 rounded-full shadow-lg transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-headset"></i> Área de Solicitações
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== INSCRIÇÕES (AVISO) ============================== -->
+<section class="max-w-3xl mx-auto px-6 -mt-8 relative z-10">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 flex items-start gap-4 text-left">
+        <div class="w-11 h-11 bg-green-50 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fa-solid fa-calendar-check conadibe-green"></i>
+        </div>
+        <div>
+            <h2 class="font-bold conadibe-blue">Inscrições liberadas 1x por ano</h2>
+            <p class="text-sm text-gray-500 mt-1">
+                O período de inscrições já foi encerrado. A próxima abertura está prevista para o
+                <strong class="conadibe-blue">início de 2027</strong>. Acompanhe nossos canais oficiais para não perder a data.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== SOBRE ============================== -->
+<section id="sobre" class="max-w-5xl mx-auto px-6 pt-16 pb-4 scroll-mt-20">
+    <p class="text-xs font-bold conadibe-green uppercase tracking-widest mb-2">Quem Somos</p>
+    <h2 class="text-2xl md:text-3xl font-extrabold conadibe-blue mb-4">Sobre a CONADIBE</h2>
+    <p class="text-gray-500 max-w-2xl leading-relaxed">
+        A CONADIBE reúne ministros, obreiros e membros para a Conferência Bíblica anual — um tempo de comunhão,
+        ensino e consagração. A Secretaria Geral cuida do credenciamento, do suporte aos ministros e da organização
+        de todo o evento.
+    </p>
+</section>
+
+<!-- ============================== MINISTÉRIOS ============================== -->
+<section id="ministerios" class="max-w-5xl mx-auto px-6 py-10 scroll-mt-20">
+    <p class="text-xs font-bold conadibe-green uppercase tracking-widest mb-2">Comunhão</p>
+    <h2 class="text-2xl md:text-3xl font-extrabold conadibe-blue mb-8">Nossos Ministérios</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="card-hover bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+            <div class="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-cross conadibe-blue"></i>
+            </div>
+            <p class="font-bold text-gray-800 text-sm">AD Tempo de Deus</p>
+        </div>
+        <div class="card-hover bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-church conadibe-green"></i>
+            </div>
+            <p class="font-bold text-gray-800 text-sm">ADSA Brasil</p>
+        </div>
+        <div class="card-hover bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-handshake text-gray-500"></i>
+            </div>
+            <p class="font-bold text-gray-800 text-sm">Ministérios Convidados</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== CONFERÊNCIA / SETORES ============================== -->
+<section id="conferencia" class="bg-white border-y border-gray-100 py-16 scroll-mt-20">
+    <div class="max-w-5xl mx-auto px-6">
+        <p class="text-xs font-bold conadibe-green uppercase tracking-widest mb-2">Credenciamento</p>
+        <h2 class="text-2xl md:text-3xl font-extrabold conadibe-blue mb-8">Data e Setores</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="card-hover bg-gray-50 rounded-xl border border-gray-100 p-5">
+                <p class="text-xs font-bold conadibe-green mb-1">SETOR A</p>
+                <p class="text-sm font-semibold text-gray-700">Ministros e Obreiros</p>
+                <p class="text-xs text-gray-400 mt-1">Nave</p>
+            </div>
+            <div class="card-hover bg-gray-50 rounded-xl border border-gray-100 p-5">
+                <p class="text-xs font-bold text-gray-400 mb-1">SETOR B</p>
+                <p class="text-sm font-semibold text-gray-700">Público Geral</p>
+                <p class="text-xs text-gray-400 mt-1">Galeria</p>
+            </div>
+            <div class="card-hover bg-gray-50 rounded-xl border border-gray-100 p-5">
+                <p class="text-xs font-bold text-gray-400 mb-1">SETOR C</p>
+                <p class="text-sm font-semibold text-gray-700">Caravanas</p>
+                <p class="text-xs text-gray-400 mt-1">Galeria</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== MINISTROS (CTA) ============================== -->
+<section id="ministros-cta" class="max-w-5xl mx-auto px-6 py-16">
+    <div class="bg-conadibe-blue rounded-3xl overflow-hidden relative">
+        <div class="blob w-64 h-64 bg-conadibe-green top-[-40px] right-[10%] opacity-20"></div>
+        <div class="relative px-6 sm:px-12 py-12 text-center text-white">
+            <i class="fa-solid fa-headset text-3xl conadibe-green mb-4"></i>
+            <h2 class="text-2xl md:text-3xl font-extrabold mb-3">Já é Ministro cadastrado?</h2>
+            <p class="text-blue-100/80 max-w-xl mx-auto mb-6">
+                Corrija dados, solicite o reenvio de credencial/certificado, atualize sua foto ou fale com a secretaria.
+            </p>
+            <a href="solicitacoes.html" class="inline-flex items-center gap-2 bg-conadibe-green hover-bg-green text-white font-bold px-8 py-3.5 rounded-full shadow-lg transition">
+                <i class="fa-solid fa-arrow-right"></i> Acessar Área de Solicitações
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== FAQ ============================== -->
+<section id="faq" class="max-w-3xl mx-auto px-6 pb-16 scroll-mt-20">
+    <p class="text-xs font-bold conadibe-green uppercase tracking-widest mb-2 text-center">Dúvidas</p>
+    <h2 class="text-2xl md:text-3xl font-extrabold conadibe-blue mb-8 text-center">Perguntas Frequentes</h2>
+
+    <div class="space-y-3" id="faqAccordion">
+        <div class="faq-item bg-white border border-gray-100 rounded-xl shadow-sm">
+            <button class="w-full flex justify-between items-center px-5 py-4 text-left font-semibold text-gray-700 text-sm" onclick="toggleFaqItem(this)">
+                Quando abrem as inscrições? <i class="fa-solid fa-chevron-down text-xs text-gray-400 faq-caret transition"></i>
+            </button>
+            <div class="faq-answer px-5 text-sm text-gray-500">
+                <p class="pb-4">As inscrições do CONADIBE são liberadas apenas 1 vez por ano. A próxima abertura está prevista para o início de 2027.</p>
+            </div>
+        </div>
+        <div class="faq-item bg-white border border-gray-100 rounded-xl shadow-sm">
+            <button class="w-full flex justify-between items-center px-5 py-4 text-left font-semibold text-gray-700 text-sm" onclick="toggleFaqItem(this)">
+                Qual a data do evento? <i class="fa-solid fa-chevron-down text-xs text-gray-400 faq-caret transition"></i>
+            </button>
+            <div class="faq-answer px-5 text-sm text-gray-500">
+                <p class="pb-4">A Conferência Bíblica CONADIBE ocorrerá de 05 a 09 de Julho de 2026.</p>
+            </div>
+        </div>
+        <div class="faq-item bg-white border border-gray-100 rounded-xl shadow-sm">
+            <button class="w-full flex justify-between items-center px-5 py-4 text-left font-semibold text-gray-700 text-sm" onclick="toggleFaqItem(this)">
+                Qual meu setor (assento)? <i class="fa-solid fa-chevron-down text-xs text-gray-400 faq-caret transition"></i>
+            </button>
+            <div class="faq-answer px-5 text-sm text-gray-500">
+                <p class="pb-4"><strong>Setor A:</strong> Ministros e Obreiros (Nave). <strong>Setor B/C:</strong> Público Geral e Caravanas (Galerias).</p>
+            </div>
+        </div>
+        <div class="faq-item bg-white border border-gray-100 rounded-xl shadow-sm">
+            <button class="w-full flex justify-between items-center px-5 py-4 text-left font-semibold text-gray-700 text-sm" onclick="toggleFaqItem(this)">
+                Sou ministro e preciso corrigir meus dados. Como faço? <i class="fa-solid fa-chevron-down text-xs text-gray-400 faq-caret transition"></i>
+            </button>
+            <div class="faq-answer px-5 text-sm text-gray-500">
+                <p class="pb-4">Acesse a <a href="solicitacoes.html" class="conadibe-green underline font-semibold">Área de Solicitações</a> e escolha o tipo de solicitação (correção de dados, credencial, foto etc.).</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================== CONTATO / FOOTER ============================== -->
+<footer id="contato" class="bg-conadibe-blue text-white pt-16 pb-8 scroll-mt-20">
+    <div class="max-w-5xl mx-auto px-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-10 mb-12">
+            <div>
+                <div class="flex items-center gap-2 mb-3">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTrVYE4Dq0DrhQaUBX5SAGsTEGEpqMG6aP37ZEBQsB-WCzCp33DcoNyqDYX0koM1s5TG5Y&usqp=CAU" alt="Logo CONADIBE" class="h-9 w-9 rounded-full">
+                    <span class="font-extrabold text-lg">CONADIBE</span>
+                </div>
+                <p class="text-blue-100/70 text-sm leading-relaxed">Secretaria Geral da Conferência Bíblica CONADIBE.</p>
+            </div>
+            <div>
+                <p class="font-bold text-sm mb-3 conadibe-green">Navegação</p>
+                <ul class="space-y-2 text-sm text-blue-100/70">
+                    <li><a href="#sobre" class="hover:text-white">Quem Somos</a></li>
+                    <li><a href="#conferencia" class="hover:text-white">Data e Setores</a></li>
+                    <li><a href="#faq" class="hover:text-white">Perguntas Frequentes</a></li>
+                    <li><a href="solicitacoes.html" class="hover:text-white">Área de Solicitações</a></li>
+                </ul>
+            </div>
+            <div>
+                <p class="font-bold text-sm mb-3 conadibe-green">Fale Conosco</p>
+                <button onclick="falarOrganizador()" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition text-sm font-semibold px-4 py-2.5 rounded-full">
+                    <i class="fa-brands fa-whatsapp"></i> Falar no WhatsApp
                 </button>
             </div>
-
-            <div id="answer-pagamento" class="chat-answer">
-                O pagamento deve ser feito exclusivamente pela plataforma E-inscrição. 
-                <a href="https://www.e-inscricao.com/conadibe/conferencia-biblica-2026" target="_blank" class="underline font-bold text-blue-700">Clique aqui para acessar</a>.
-                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
-            </div>
-
-            <div id="answer-data" class="chat-answer">
-                A Conferência Bíblica CONADIBE ocorrerá de <strong>05 a 09 de Julho de 2026</strong>.
-                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
-            </div>
-
-            <div id="answer-credencial" class="chat-answer">
-                Após preencher sua ficha aqui no portal, seus dados serão analisados. Se aprovado, você receberá a credencial digital com QR Code no seu WhatsApp/E-mail.
-                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
-            </div>
-
-            <div id="answer-setor" class="chat-answer">
-                <strong>Setor A:</strong> Exclusivo para Ministros e Obreiros (Nave).<br>
-                <strong>Setor B/C:</strong> Público Geral e Caravanas (Galerias).
-                <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+        </div>
+        <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-blue-100/60">
+            <p>© 2026 CONADIBE — Secretaria Geral. Todos os direitos reservados.</p>
+            <div class="flex items-center gap-4">
+                <a href="privacidade.html" class="hover:text-white">Política de Privacidade</a>
+                <button onclick="abrirPreferenciasCookies()" class="hover:text-white">Preferências de Cookies</button>
             </div>
         </div>
     </div>
+</footer>
 
-    <script>
-        function fecharSplash() {
-            const splash = document.getElementById('splash-overlay');
-            splash.classList.add('fade-out');
-            setTimeout(() => {
-                splash.style.display = 'none';
-            }, 500);
-        }
+<!-- ============================== BOTÃO FLUTUANTE DE DÚVIDAS ============================== -->
+<button onclick="toggleChat()" class="btn-floating fixed bottom-6 right-6 z-50 bg-conadibe-green hover-bg-green text-white font-bold p-4 rounded-full shadow-2xl transition transform flex items-center justify-center border-2 border-white">
+    <i class="fa-solid fa-question text-2xl"></i>
+    <span class="btn-text-anim text-sm font-bold">Dúvidas? Clique aqui.</span>
+</button>
 
-        function toggleChat() {
-            const w = document.getElementById('chatWindow');
-            w.style.display = w.style.display === 'block' ? 'none' : 'block';
-        }
+<div id="chatWindow" class="chat-window">
+    <div class="chat-header">
+        <span><i class="fa-regular fa-comments mr-2"></i>Dúvidas Frequentes</span>
+        <button onclick="toggleChat()" class="text-white hover:text-gray-300"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="chat-body bg-white">
+        <p class="text-sm text-gray-500 mb-4">Olá! Como podemos te ajudar?</p>
+        <div id="options">
+            <div class="chat-option" onclick="showAnswer('abertura')">Quando abrem as inscrições?</div>
+            <div class="chat-option" onclick="showAnswer('data')">Qual a data do evento?</div>
+            <div class="chat-option" onclick="showAnswer('setor')">Qual meu setor (assento)?</div>
+            <div class="chat-option" onclick="showAnswer('solicitacao')">Preciso corrigir meus dados</div>
+            <button onclick="falarOrganizador()" class="w-full mt-4 bg-conadibe-green text-white py-2 rounded text-sm font-bold hover-bg-green flex items-center justify-center gap-2 shadow-md transition">
+                <i class="fa-brands fa-whatsapp"></i> Falar com Organizador
+            </button>
+        </div>
+        <div id="answer-abertura" class="chat-answer">
+            As inscrições do CONADIBE são liberadas apenas <strong>1 vez por ano</strong>. Próxima abertura prevista para o <strong>início de 2027</strong>.
+            <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+        </div>
+        <div id="answer-data" class="chat-answer">
+            A Conferência Bíblica CONADIBE ocorrerá de <strong>05 a 09 de Julho de 2026</strong>.
+            <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+        </div>
+        <div id="answer-setor" class="chat-answer">
+            <strong>Setor A:</strong> Ministros e Obreiros (Nave).<br><strong>Setor B/C:</strong> Público Geral e Caravanas (Galerias).
+            <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+        </div>
+        <div id="answer-solicitacao" class="chat-answer">
+            Acesse a <a href="solicitacoes.html" class="underline font-bold text-conadibe-green">Área de Solicitações</a> e escolha o tipo (correção de dados, credencial, foto etc.).
+            <button onclick="resetChat()" class="text-xs underline mt-2 block text-gray-500">Voltar</button>
+        </div>
+    </div>
+</div>
 
-        function showAnswer(id) {
-            document.getElementById('options').style.display = 'none';
-            document.querySelectorAll('.chat-answer').forEach(el => el.style.display = 'none');
-            document.getElementById('answer-' + id).style.display = 'block';
-        }
+<!-- ============================== COOKIE BANNER (LGPD) ============================== -->
+<div id="cookieBanner" class="fixed bottom-0 left-0 right-0 z-[100] bg-white border-t border-gray-200 shadow-[0_-10px_30px_rgba(0,0,0,0.1)] p-4 sm:p-5">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-4">
+        <div class="flex items-start gap-3 flex-1">
+            <i class="fa-solid fa-cookie-bite conadibe-green text-xl mt-0.5"></i>
+            <p class="text-sm text-gray-600">
+                Usamos cookies para melhorar sua experiência no site. Você pode aceitar todos, personalizar por categoria ou rejeitar os não essenciais.
+                Saiba mais na nossa <a href="privacidade.html" class="conadibe-blue underline font-semibold">Política de Privacidade</a>.
+            </p>
+        </div>
+        <div class="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-shrink-0">
+            <button onclick="rejeitarCookies()" class="order-3 sm:order-1 text-sm font-semibold text-gray-500 hover:text-gray-700 px-4 py-2.5">Rejeitar</button>
+            <button onclick="abrirPreferenciasCookies()" class="order-2 border border-gray-300 text-sm font-semibold text-gray-600 hover:bg-gray-50 px-4 py-2.5 rounded-full">Personalizar</button>
+            <button onclick="aceitarTodosCookies()" class="order-1 sm:order-3 bg-conadibe-green hover-bg-green text-white text-sm font-bold px-5 py-2.5 rounded-full shadow transition">Aceitar Todos</button>
+        </div>
+    </div>
+</div>
 
-        function resetChat() {
-            document.getElementById('options').style.display = 'block';
-            document.querySelectorAll('.chat-answer').forEach(el => el.style.display = 'none');
-        }
+<!-- ============================== MODAL PREFERÊNCIAS DE COOKIES ============================== -->
+<div id="modalCookies" class="hidden fixed inset-0 bg-black/60 z-[110] items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div class="p-5 border-b flex justify-between items-center">
+            <h3 class="font-bold conadibe-blue"><i class="fa-solid fa-cookie-bite conadibe-green mr-1"></i> Preferências de Cookies</h3>
+            <button onclick="fecharModalCookies()" class="text-gray-400 hover:text-gray-700"><i class="fa-solid fa-xmark text-xl"></i></button>
+        </div>
+        <div class="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="font-semibold text-sm text-gray-700">Necessários</p>
+                    <p class="text-xs text-gray-400 mt-1">Essenciais para o funcionamento do site. Não podem ser desativados.</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked disabled>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="font-semibold text-sm text-gray-700">Desempenho / Analytics</p>
+                    <p class="text-xs text-gray-400 mt-1">Nos ajudam a entender como o site é utilizado (ex: Google Analytics).</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="cookieDesempenho">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="font-semibold text-sm text-gray-700">Marketing</p>
+                    <p class="text-xs text-gray-400 mt-1">Usados para anúncios e campanhas relevantes (ex: Google Ads, Meta Ads).</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="cookieMarketing">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+        </div>
+        <div class="p-5 border-t flex gap-2">
+            <button onclick="rejeitarCookies()" class="flex-1 text-sm font-semibold text-gray-500 hover:text-gray-700">Rejeitar Todos</button>
+            <button onclick="salvarPreferenciasCookies()" class="flex-1 bg-conadibe-blue text-white text-sm font-bold py-2.5 rounded-full">Salvar Preferências</button>
+        </div>
+    </div>
+</div>
 
-        function falarOrganizador() {
-            const numero = "5511946028592";
-            const texto = "Olá, estou no site da inscrição e tenho uma dúvida não listada no FAQ.";
-            window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank');
+<script>
+    // ===================================================================
+    // NAV DESKTOP (dropdown por clique)
+    // ===================================================================
+    function toggleNavDropdown(btn) {
+        const item = btn.closest('.nav-item');
+        const jaAberto = item.classList.contains('open');
+        document.querySelectorAll('.nav-item.open').forEach(i => i.classList.remove('open'));
+        if (!jaAberto) item.classList.add('open');
+    }
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.nav-item')) {
+            document.querySelectorAll('.nav-item.open').forEach(i => i.classList.remove('open'));
         }
-    </script>
+    });
+
+    // ===================================================================
+    // NAV MOBILE
+    // ===================================================================
+    function toggleMobileMenu() {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+    }
+    function toggleMobileSub(btn) {
+        const sub = btn.nextElementSibling;
+        sub.classList.toggle('open');
+        btn.querySelector('i').classList.toggle('rotate-180');
+    }
+
+    // ===================================================================
+    // FAQ (accordion da seção)
+    // ===================================================================
+    function toggleFaqItem(btn) {
+        const item = btn.closest('.faq-item');
+        const jaAberto = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!jaAberto) item.classList.add('open');
+    }
+
+    // ===================================================================
+    // CHAT FLUTUANTE
+    // ===================================================================
+    function toggleChat() {
+        const w = document.getElementById('chatWindow');
+        w.style.display = w.style.display === 'block' ? 'none' : 'block';
+    }
+    function showAnswer(id) {
+        document.getElementById('options').style.display = 'none';
+        document.querySelectorAll('.chat-answer').forEach(el => el.style.display = 'none');
+        document.getElementById('answer-' + id).style.display = 'block';
+    }
+    function resetChat() {
+        document.getElementById('options').style.display = 'block';
+        document.querySelectorAll('.chat-answer').forEach(el => el.style.display = 'none');
+    }
+    function falarOrganizador() {
+        const numero = "5511946028592";
+        const texto = "Olá, estou no site do CONADIBE e tenho uma dúvida.";
+        window.open(`https://wa.me/${numero}?text=${encodeURIComponent(texto)}`, '_blank');
+    }
+
+    // ===================================================================
+    // COOKIES (LGPD) — aceitar / personalizar / rejeitar
+    // ===================================================================
+    const COOKIE_CONSENT_KEY = 'conadibe_cookie_consent';
+
+    function obterConsentimento() {
+        try { return JSON.parse(localStorage.getItem(COOKIE_CONSENT_KEY)); }
+        catch (e) { return null; }
+    }
+    function salvarConsentimento(consent) {
+        const registro = Object.assign({}, consent, { necessarios: true, dataHora: new Date().toISOString() });
+        localStorage.setItem(COOKIE_CONSENT_KEY, JSON.stringify(registro));
+        aplicarConsentimento(registro);
+        esconderBannerCookies();
+        fecharModalCookies();
+    }
+
+    function aceitarTodosCookies() {
+        salvarConsentimento({ desempenho: true, marketing: true });
+    }
+    function rejeitarCookies() {
+        salvarConsentimento({ desempenho: false, marketing: false });
+    }
+    function abrirPreferenciasCookies() {
+        const atual = obterConsentimento() || { desempenho: false, marketing: false };
+        document.getElementById('cookieDesempenho').checked = !!atual.desempenho;
+        document.getElementById('cookieMarketing').checked = !!atual.marketing;
+        const modal = document.getElementById('modalCookies');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+    function fecharModalCookies() {
+        const modal = document.getElementById('modalCookies');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    function salvarPreferenciasCookies() {
+        salvarConsentimento({
+            desempenho: document.getElementById('cookieDesempenho').checked,
+            marketing: document.getElementById('cookieMarketing').checked
+        });
+    }
+    function esconderBannerCookies() {
+        document.getElementById('cookieBanner').classList.remove('show');
+    }
+
+    // ===================================================================
+    // ESPAÇO RESERVADO — carregamento condicional de tags do Google
+    // Só executa depois que o usuário der consentimento explícito.
+    // Cole os snippets oficiais (GA4 / GTM / Google Ads) dentro dos blocos
+    // abaixo quando tiver os IDs — por enquanto fica vazio de propósito.
+    // ===================================================================
+    function aplicarConsentimento(consent) {
+        if (consent.desempenho) {
+            // --- Google Analytics / Tag Manager (Desempenho) ---
+            // const s = document.createElement('script');
+            // s.async = true;
+            // s.src = 'https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX';
+            // document.head.appendChild(s);
+            // window.dataLayer = window.dataLayer || [];
+            // function gtag(){ dataLayer.push(arguments); }
+            // gtag('js', new Date());
+            // gtag('config', 'G-XXXXXXXXXX');
+        }
+        if (consent.marketing) {
+            // --- Google Ads / Meta Pixel / outras tags de marketing ---
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const consent = obterConsentimento();
+        if (consent) {
+            aplicarConsentimento(consent);
+        } else {
+            setTimeout(() => document.getElementById('cookieBanner').classList.add('show'), 600);
+        }
+    });
+</script>
 </body>
 </html>
