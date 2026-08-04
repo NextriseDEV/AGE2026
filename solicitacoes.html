@@ -95,9 +95,12 @@
 
                     <div id="areaCampoSetor" class="hidden fade-in">
                         <label class="text-xs font-bold text-gray-500 uppercase">Campo / Setor (ADSA Brasil) <span class="text-red-500">*</span></label>
-                        <select id="campoSetor" class="input-field bg-white">
-                            <option value="" disabled selected>Carregando campos...</option>
-                        </select>
+                        <div class="relative">
+                            <input type="text" id="campoSetorBusca" class="input-field bg-white pr-9" placeholder="Carregando campos..." autocomplete="off" disabled>
+                            <i class="fa-solid fa-magnifying-glass text-gray-400 text-xs absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="hidden" id="campoSetor" value="">
+                            <div id="campoSetorLista" class="hidden absolute left-0 right-0 z-20 mt-1 max-h-56 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -250,24 +253,106 @@
             if (valor === 'ADSA BRASIL' && !camposAdsaCarregados) {
                 carregarCamposAdsa();
             }
+            if (valor !== 'ADSA BRASIL') {
+                // limpa a seleção do campo/setor ao sair da ADSA Brasil
+                document.getElementById('campoSetorBusca').value = '';
+                document.getElementById('campoSetor').value = '';
+                esconderListaCampos();
+            }
         });
 
+        // --- Campo/Setor (ADSA Brasil) — combobox pesquisável ---
+        let todosCamposAdsa = [];
+        let campoSetorIndexAtivo = -1;
+
         async function carregarCamposAdsa() {
-            const select = document.getElementById('campoSetor');
+            const busca = document.getElementById('campoSetorBusca');
+            busca.placeholder = 'Carregando campos...';
             try {
                 const resp = await fetch(API_URL + '?action=getCampos');
                 const data = await resp.json();
-                select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
-                (data.campos || []).forEach(c => {
-                    const opt = document.createElement('option');
-                    opt.value = c; opt.textContent = c;
-                    select.appendChild(opt);
-                });
+                todosCamposAdsa = data.campos || [];
+                busca.disabled = false;
+                busca.placeholder = 'Digite para buscar seu Campo/Setor...';
                 camposAdsaCarregados = true;
             } catch (err) {
-                select.innerHTML = '<option value="" disabled selected>Erro ao carregar. Tente novamente.</option>';
+                busca.placeholder = 'Erro ao carregar. Tente novamente.';
             }
         }
+
+        function normalizarTextoBusca(txt) {
+            return String(txt || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        }
+
+        function renderizarListaCampos(filtro) {
+            const lista = document.getElementById('campoSetorLista');
+            const termo = normalizarTextoBusca(filtro);
+            const filtrados = todosCamposAdsa.filter(c => normalizarTextoBusca(c).includes(termo));
+            campoSetorIndexAtivo = -1;
+
+            if (!filtrados.length) {
+                lista.innerHTML = '<div class="px-4 py-3 text-sm text-gray-400">Nenhum campo/setor encontrado.</div>';
+            } else {
+                lista.innerHTML = filtrados.map(c =>
+                    '<div class="campo-opcao px-4 py-2.5 text-sm text-gray-700 cursor-pointer hover:bg-gray-50" data-valor="' +
+                    c.replace(/"/g, '&quot;') + '">' + c + '</div>'
+                ).join('');
+                lista.querySelectorAll('.campo-opcao').forEach(op => {
+                    op.addEventListener('click', () => selecionarCampoSetor(op.dataset.valor));
+                });
+            }
+            lista.classList.remove('hidden');
+        }
+
+        function selecionarCampoSetor(valor) {
+            document.getElementById('campoSetorBusca').value = valor;
+            document.getElementById('campoSetor').value = valor;
+            esconderListaCampos();
+        }
+
+        function esconderListaCampos() {
+            document.getElementById('campoSetorLista').classList.add('hidden');
+            campoSetorIndexAtivo = -1;
+        }
+
+        function atualizarDestaqueCampos(opcoes) {
+            opcoes.forEach((op, i) => op.classList.toggle('bg-gray-100', i === campoSetorIndexAtivo));
+        }
+
+        document.getElementById('campoSetorBusca').addEventListener('input', function () {
+            document.getElementById('campoSetor').value = ''; // exige nova seleção da lista
+            renderizarListaCampos(this.value);
+        });
+        document.getElementById('campoSetorBusca').addEventListener('focus', function () {
+            if (!this.disabled) renderizarListaCampos(this.value);
+        });
+        document.getElementById('campoSetorBusca').addEventListener('keydown', function (e) {
+            const lista = document.getElementById('campoSetorLista');
+            if (lista.classList.contains('hidden')) return;
+            const opcoes = Array.from(lista.querySelectorAll('.campo-opcao'));
+            if (!opcoes.length) return;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                campoSetorIndexAtivo = Math.min(campoSetorIndexAtivo + 1, opcoes.length - 1);
+                atualizarDestaqueCampos(opcoes);
+                opcoes[campoSetorIndexAtivo].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                campoSetorIndexAtivo = Math.max(campoSetorIndexAtivo - 1, 0);
+                atualizarDestaqueCampos(opcoes);
+                opcoes[campoSetorIndexAtivo].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (campoSetorIndexAtivo >= 0 && opcoes[campoSetorIndexAtivo]) {
+                    selecionarCampoSetor(opcoes[campoSetorIndexAtivo].dataset.valor);
+                }
+            } else if (e.key === 'Escape') {
+                esconderListaCampos();
+            }
+        });
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('#areaCampoSetor')) esconderListaCampos();
+        });
 
         // --- Tipo de Solicitação ---
         document.querySelectorAll('input[name="tipoSolicitacao"]').forEach(input => {
